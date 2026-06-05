@@ -1,0 +1,24 @@
+# f*sigma8 gold compilation — 18 independent RSD measurements
+# Primary source: Perivolaropoulos & Skara 2020, PRD 102, 063542 (arXiv:2105.05208)
+# Columns: z_eff   fsigma8_obs   sigma   survey
+# All measurements are independent (from different surveys/instruments).
+# Covariance is diagonal: fsigma8_gold_cov.txt contains sigma_i^2 on the diagonal.
+# Sorted by z_eff ascending.
+0.02     0.428    0.0465   2MTF
+0.067    0.423    0.055    6dFGRS
+0.10     0.370    0.130    SDSS_velocities
+0.15     0.490    0.145    SDSS_MGS
+0.17     0.510    0.060    2dFGRS
+0.18     0.360    0.090    GAMA
+0.22     0.420    0.070    WiggleZ
+0.25     0.3512   0.0583   SDSS_LRG
+0.38     0.497    0.045    BOSS_DR12
+0.41     0.450    0.040    WiggleZ
+0.51     0.458    0.038    BOSS_DR12
+0.57     0.427    0.066    SDSS_CMASS
+0.60     0.390    0.063    WiggleZ
+0.61     0.436    0.034    BOSS_DR12
+0.78     0.380    0.040    WiggleZ
+0.85     0.315    0.095    eBOSS_ELG
+1.36     0.482    0.116    FastSound
+1.48     0.462    0.045    eBOSS_QSO

@@ -1,0 +1,29 @@
+@echo off
+set PYTHONUTF8=1
+
+echo.
+echo ================================================================
+echo   Thawing Field Analyzer ^| WLI_2 Sample Run
+echo ================================================================
+echo   This script runs the WLI_2 benchmark route.
+echo.
+echo   The tfa-environment-settings.json in this folder is
+echo   pre-configured for WLI_2:
+echo     Potential  : WLI  (Peebles ^& Vilenkin 1999)
+echo     Parameters : alpha = 1.5 ^|  phi_inf = 1.30
+echo     Initial    : phi_i = 1.30,  phi_N_i = 0.0
+echo.
+echo   Results will be written to the results\ subfolder.
+echo ================================================================
+echo.
+
+python "%~dp0run_WLI_2.py"
+
+echo.
+echo ================================================================
+echo   WLI_2 run complete.
+echo   Open the results\ subfolder to inspect outputs.
+echo ================================================================
+echo.
+
+pause

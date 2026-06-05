@@ -1,0 +1,9 @@
+{
+  "script_name": "tfa_acoustic_validator",
+  "approved_version": "0.1.4",
+  "approved_build": "0001",
+  "script_api_version": "0.1",
+  "tfa_project_release": "0.0.2",
+  "approved_folder": "v0.1.4-build.0001",
+  "settings_schema_version": "0.1"
+}
