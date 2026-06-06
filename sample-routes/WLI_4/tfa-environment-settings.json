@@ -230,12 +230,12 @@
                                      },
     "schema":  {
                    "name":  "tfa-environment-settings",
-                   "settings_file_version":  "1.0.0",
-                   "tfa_package_release":  "0.0.2",
+                   "settings_file_version":  "1.0.1",
+                   "tfa_package_release":  "0.0.3",
                    "compatible_scripts":  [
                                               {
                                                   "script_name":  "tfa_common",
-                                                  "script_version":  "0.9.0"
+                                                  "script_version":  "0.9.1"
                                               },
                                               {
                                                   "script_name":  "tfa_acoustic_validator",

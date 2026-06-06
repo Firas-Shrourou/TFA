@@ -1,5 +1,38 @@
 # Release Notes
 
+## TFA 0.0.3
+
+**Bug fix release. Sub-scripts unchanged from 0.0.2.**
+
+### tfa_common v0.9.1 — B001: BOM resilience
+
+**Bug:** If `tfa-environment-settings.json` was saved with a UTF-8 BOM (e.g.
+by Notepad on Windows), `json.load()` raised `JSONDecodeError` and all runs
+failed immediately with no run folder produced.
+
+**Fix:**
+- The initial settings read now opens with `encoding="utf-8-sig"`, which strips
+  the BOM silently when present and reads normally when absent.
+- `_read_json` also updated to `utf-8-sig` (defensive; covers summary reads).
+- The frozen settings copy written into each run folder is now produced via
+  parse-and-reserialize (`utf-8-sig` read + atomic write) instead of
+  `shutil.copy2`, guaranteeing the frozen `environment-settings.json` is always
+  BOM-free regardless of how the original was saved.
+
+Settings schema: `settings_file_version` 1.0.0 → 1.0.1,
+`tfa_package_release` 0.0.2 → 0.0.3, `tfa_common` entry 0.9.0 → 0.9.1.
+
+| Component | Version |
+|---|---:|
+| `tfa_common` | **`0.9.1`** ← updated |
+| `tfa_acoustic_validator` | `0.1.4` (unchanged) |
+| `tfa_physics_guard_validator` | `0.1.4` (unchanged) |
+| `tfa_plot_exporter` | `0.1.0` (unchanged) |
+| `tfa_bao_validator` | `0.1.1` (unchanged) |
+| `tfa_rsd_validator` | `0.1.0` (unchanged) |
+
+---
+
 ## TFA 0.0.2
 
 This release packages the approved Thawing Field Analyzer stack for public use.
