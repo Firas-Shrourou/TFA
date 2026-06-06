@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use Thawing Field Analyzer (TFA), please cite it using the metadata in this file."
+type: software
+title: "Thawing Field Analyzer (TFA)"
+abstract: "A Python package for analyzing thawing scalar-field routes after acoustic normalization."
+authors:
+  - family-names: "Shrourou"
+    given-names: "Firas"
+doi: "10.5281/zenodo.20572380"
+url: "https://github.com/Firas-Shrourou/TFA"
+repository-code: "https://github.com/Firas-Shrourou/TFA"
+license: "MIT"
+version: "0.0.4"
+date-released: "2026-06-06"
