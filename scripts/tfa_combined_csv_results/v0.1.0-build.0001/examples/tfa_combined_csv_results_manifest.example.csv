@@ -1,0 +1,3 @@
+run_folder,output_folder,output_name,path_style,overwrite
+E:/Thawing Field Analyzer/tfa-results/runs/tfa_20260605_141951_ae2a12045f924527b208ba453e8aa8fa,.,combined_results_manifest.csv,absolute,true
+E:/Thawing Field Analyzer/tfa-results/runs/tfa_20260605_141958_311cc25a2d7343dfb283a5feb80e3b3b,.,combined_results_manifest.csv,absolute,true

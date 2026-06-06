@@ -16,8 +16,29 @@ version independently of the project release.
 | `tfa_plot_exporter` | `0.1.1` | `0001` | `scripts/tfa_plot_exporter/v0.1.1-build.0001/` | Presentation — 6 diagnostic plots |
 | `tfa_bao_validator` | `0.1.1` | `0001` | `scripts/tfa_bao_validator/v0.1.1-build.0001/` | BAO — DESI DR2 distance closure, drag-epoch ruler |
 | `tfa_rsd_validator` | `0.1.0` | `0001` | `scripts/tfa_rsd_validator/v0.1.0-build.0001/` | RSD — f·σ₈ growth rate, 18-point gold compilation |
+| `tfa_combined_csv_results` | `0.1.0` | `0001` | `scripts/tfa_combined_csv_results/v0.1.0-build.0001/` | Utility — combine arbitrary run summaries into one union CSV |
 | `tfa_normalized_history_generator` | — | — | — | **Deprecated** — moved to `archive/` |
 | `tfa_csv_exporter` | — | — | — | **Deprecated** — moved to `archive/` |
+
+---
+
+## T002 Utility Addition — 2026-06-06
+
+### tfa_combined_csv_results v0.1.0 build 0001
+
+**T002 — combined CSV results utility.** Adds a standard-library-only script
+that combines many `run_results_summary.json` files into one CSV. The script is
+driven by a JSON config or CSV manifest, reads config/manifest/summary files
+with UTF-8 BOM tolerance, and writes clean UTF-8 outputs.
+
+The combiner treats each valid top-level JSON object as data. It flattens
+arbitrary nested fields, builds union columns across all valid summaries, fills
+missing numeric fields with `NaN`, fills missing text fields with `N/A`, and
+does not require any current TFA summary field path.
+
+By default it also writes a schema audit sidecar that reports column presence,
+missing counts, explicit null counts, observed types, skipped inputs, and any
+collision-safe flattened column suffixes.
 
 ---
 

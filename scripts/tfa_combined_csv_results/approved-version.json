@@ -1,0 +1,11 @@
+{
+  "script_name": "tfa_combined_csv_results",
+  "approved_version": "0.1.0",
+  "approved_build": "0001",
+  "script_api_version": "0.1",
+  "tfa_project_release": "0.0.4",
+  "approved_folder": "v0.1.0-build.0001",
+  "settings_schema_version": "0.1",
+  "approved_at": "2026-06-06",
+  "notes": "Initial combined CSV results utility."
+}
