@@ -4,7 +4,7 @@ TFA writes diagnostic plots into each run folder. The release repository also
 includes a small gallery of sample plots in:
 
 ```text
-figurers/
+figures/
 ```
 
 The gallery files were copied from the paper's example run outputs and include
@@ -30,7 +30,7 @@ available scalar-state plots can still be written.
 
 ## Sample gallery
 
-The `figurers/` folder contains the following sample plots:
+The `figures/` folder contains the following sample plots:
 
 | File | Description |
 |---|---|
@@ -60,9 +60,9 @@ background that BAO and RSD consume.
 
 Representative examples:
 
-![Normalized expansion history for WQI_F765](../figurers/WQI_F765_H_of_z.png)
+![Normalized expansion history for WQI_F765](../figures/WQI_F765_H_of_z.png)
 
-![Normalized expansion history for WLI_4](../figurers/WLI_4_H_of_z.png)
+![Normalized expansion history for WLI_4](../figures/WLI_4_H_of_z.png)
 
 ### Scalar equation of state
 
@@ -72,9 +72,9 @@ phantom boundary.
 
 Representative examples:
 
-![Scalar equation-of-state history for WQI_F680](../figurers/WQI_F680_w_of_z.png)
+![Scalar equation-of-state history for WQI_F680](../figures/WQI_F680_w_of_z.png)
 
-![Scalar equation-of-state history for WLI_2](../figurers/WLI_2_w_of_z.png)
+![Scalar equation-of-state history for WLI_2](../figures/WLI_2_w_of_z.png)
 
 ### Scalar density fraction
 
@@ -84,9 +84,9 @@ different acoustic bands.
 
 Representative examples:
 
-![Scalar energy-density fraction for WLI_1](../figurers/WLI_1_Omega_phi.png)
+![Scalar energy-density fraction for WLI_1](../figures/WLI_1_Omega_phi.png)
 
-![Scalar energy-density fraction for WLI_6](../figurers/WLI_6_Omega_phi.png)
+![Scalar energy-density fraction for WLI_6](../figures/WLI_6_Omega_phi.png)
 
 ### Energy fractions
 
@@ -96,9 +96,9 @@ the reference matter/dark-energy equality redshift. They use the
 
 Representative example:
 
-![Low-redshift energy-fraction comparison for WLI_4](../figurers/WLI_4_energy_fractions.png)
+![Low-redshift energy-fraction comparison for WLI_4](../figures/WLI_4_energy_fractions.png)
 
-Vector version: `figurers/WLI_4_energy_fractions.pdf`
+Vector version: `figures/WLI_4_energy_fractions.pdf`
 
 ### BAO pulls
 
@@ -115,7 +115,7 @@ observables dominate the BAO chi-squared.
 
 Representative example:
 
-![BAO pull diagnostics for WLI_5](../figurers/WLI_5_bao_pulls.png)
+![BAO pull diagnostics for WLI_5](../figures/WLI_5_bao_pulls.png)
 
 ### RSD pulls and growth
 
@@ -125,9 +125,9 @@ Representative example:
 
 Representative examples:
 
-![RSD pull diagnostics for WLI_3](../figurers/WLI_3_rsd_pulls.png)
+![RSD pull diagnostics for WLI_3](../figures/WLI_3_rsd_pulls.png)
 
-![RSD growth-rate comparison for WQI_F765](../figurers/WQI_F765_rsd_growth.png)
+![RSD growth-rate comparison for WQI_F765](../figures/WQI_F765_rsd_growth.png)
 
 ### Phase portrait
 
@@ -137,7 +137,7 @@ directly rather than only its derived expansion history.
 
 Representative example:
 
-![Phase portrait for WQI_F765](../figurers/WQI_F765_phase_portrait.png)
+![Phase portrait for WQI_F765](../figures/WQI_F765_phase_portrait.png)
 
 ## Source data
 

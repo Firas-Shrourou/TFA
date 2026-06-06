@@ -82,7 +82,7 @@ This repository contains the public TFA package:
 - `sample-routes/`: eight preconfigured WLI/WQI benchmark routes.
 - `scripts/`: approved specialist scripts and utilities.
 - `data/`: local BAO and RSD reference data used by the validators.
-- `figurers/`: sample plot outputs used by the paper examples.
+- `figures/`: sample plot outputs used by the paper examples.
 - `docs/`: public module and utility documentation.
 - `RELEASE-NOTES.md`: release history and script-build changes.
 
