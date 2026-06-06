@@ -1,4 +1,4 @@
-{
+﻿{
     "user_adjustable":  {
                             "potential":  {
                                               "benchmark_id":  "WQI_F765",
@@ -230,8 +230,8 @@
                                      },
     "schema":  {
                    "name":  "tfa-environment-settings",
-                   "settings_file_version":  "1.0.1",
-                   "tfa_package_release":  "0.0.3",
+                   "settings_file_version":  "1.0.2",
+                   "tfa_package_release":  "0.0.4",
                    "compatible_scripts":  [
                                               {
                                                   "script_name":  "tfa_common",
@@ -239,7 +239,7 @@
                                               },
                                               {
                                                   "script_name":  "tfa_acoustic_validator",
-                                                  "script_version":  "0.1.4"
+                                                  "script_version":  "0.1.5"
                                               },
                                               {
                                                   "script_name":  "tfa_physics_guard_validator",
@@ -247,7 +247,7 @@
                                               },
                                               {
                                                   "script_name":  "tfa_plot_exporter",
-                                                  "script_version":  "0.1.0"
+                                                  "script_version":  "0.1.1"
                                               },
                                               {
                                                   "script_name":  "tfa_bao_validator",
