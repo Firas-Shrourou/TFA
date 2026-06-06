@@ -6,7 +6,7 @@ abstract: "A Python package for analyzing thawing scalar-field routes after acou
 authors:
   - family-names: "Shrourou"
     given-names: "Firas"
-doi: "10.5281/zenodo.20572380"
+doi: "10.5281/zenodo.20572379"
 url: "https://github.com/Firas-Shrourou/TFA"
 repository-code: "https://github.com/Firas-Shrourou/TFA"
 license: "MIT"

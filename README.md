@@ -308,10 +308,10 @@ See `RELEASE-NOTES.md` for the full release history.
 
 ## Archive
 
-Zenodo DOI:
+Zenodo DOI for all versions:
 
 ```text
-10.5281/zenodo.20572380
+10.5281/zenodo.20572379
 ```
 
 ## License
