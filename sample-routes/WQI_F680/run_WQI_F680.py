@@ -20,7 +20,7 @@ PACKAGE_ROOT  = BENCHMARK_DIR.parent.parent
 
 approved = json.loads(
     (PACKAGE_ROOT / "scripts" / "tfa_common" / "approved-version.json")
-    .read_text(encoding="utf-8")
+    .read_text(encoding="utf-8-sig")
 )
 sys.path.insert(0, str(PACKAGE_ROOT / "scripts" / "tfa_common" / approved["approved_folder"]))
 

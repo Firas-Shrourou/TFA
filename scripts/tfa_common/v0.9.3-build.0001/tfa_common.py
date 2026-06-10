@@ -1,48 +1,38 @@
 """
-TFA hub — settings-driven entry point (v0.9.1).
+TFA hub - settings-driven entry point (v0.9.3).
 
 The researcher defines the scalar field potential once in
-``tfa-environment-settings.json`` under ``user_adjustable.potential`` and then
-calls:
+``tfa-environment-settings.json`` under ``user_adjustable.potential`` and calls:
 
     import tfa_common as tfa
     result = tfa.run()
 
-Architecture (based on v0.2.0 in-process design):
+Architecture: reads settings, validates the potential, creates a timestamped run
+folder, freezes the settings, writes the initial summary, then calls each
+specialist in-process:
 
-  1. Reads the settings file and validates the potential expressions.
-  2. Builds a ``PotentialRoute`` from the evaluated callables (fails fast if
-     expressions are invalid).
-  3. Creates a timestamped run folder and freezes a copy of the settings
-     (including the potential spec) as a permanent audit record.
-  4. Writes the initial ``run_results_summary.json`` with the contract.
-  5. Calls each specialist **in-process** (no subprocess):
-       - ``tfa_acoustic_validator.run_acoustic_validator(run_folder)``       [fatal]
-       - ``tfa_physics_guard_validator.run_physics_guard_validator(run_folder)``  [fatal]
-       - ``tfa_plot_exporter.run_plot_exporter(run_folder)``                 [non-fatal]
-       - ``tfa_bao_validator.run_bao_validator(run_folder)``                 [non-fatal]
-       - ``tfa_rsd_validator.run_rsd_validator(run_folder)``                 [non-fatal]
-     Each specialist re-reads the frozen settings from the run folder.
-  6. Returns the aggregated result dict.
+  - tfa_acoustic_validator.run_acoustic_validator(run_folder)       [fatal]
+  - tfa_physics_guard_validator.run_physics_guard_validator(run_folder) [fatal]
+  - tfa_plot_exporter.run_plot_exporter(run_folder)                [non-fatal]
+  - tfa_bao_validator.run_bao_validator(run_folder)                [non-fatal]
+  - tfa_rsd_validator.run_rsd_validator(run_folder)                [non-fatal]
+  - tfa_density_validator.run_density_validator(run_folder)        [non-fatal]
+  - tfa_cpl_fidelity_validator.run_cpl_fidelity_validator(run_folder) [non-fatal]
 
-``code`` is ``"OK"`` when both physics specialists succeed, regardless of whether
-the non-fatal specialists (plot exporter, BAO validator, RSD validator) fail.
+Change log (v0.9.3):
+  - Added two downstream specialists to the chain (T004 deliverables 5b/5c):
+    tfa_density_validator 0.1.0 (CPL-free density-sector diagnostics: the H0
+    pull vs the DESI reference, energy-budget description, f_DE(z), thawing
+    markers) and tfa_cpl_fidelity_validator 0.1.0 (CPL audited-not-adopted:
+    best-fit CPL error report and the phantom-crossing audit).
+  - Both new specialists are NON-GATED (they run for EXCLUDED routes too) and
+    non-fatal. The physics verdict is still owned by the acoustic validator.
 
-The run folder is the complete audit record: frozen settings contain the exact
-potential definition; the summary contains every result.
-
-Change log (v0.9.1):
-  - B001 fix: step-1 settings read now opens with encoding="utf-8-sig" instead
-    of delegating to _acoustic.load_environment_settings() (which uses utf-8),
-    so a UTF-8 BOM prepended by editors such as Notepad is stripped before
-    json.load() is called.
-  - B001 fix: _read_json now uses encoding="utf-8-sig" (defensive; covers
-    run_results_summary.json reads).
-  - B001 fix: frozen settings copy is now written via parse-and-reserialize
-    (utf-8-sig read + _atomic_write_json) instead of shutil.copy2, guaranteeing
-    the frozen environment-settings.json in every run folder is BOM-free
-    regardless of how the original was saved.
-  - import shutil removed (no longer needed after the above change).
+Change log (v0.9.2):
+  - Wired to the core-based stack: tfa_acoustic_validator 0.1.6 and
+    tfa_physics_guard_validator 0.1.5; shared utilities come from ``tfa_core``.
+  - Settings read with utf-8-sig (BOM-tolerant); the frozen copy is written
+    BOM-free.
 """
 
 from __future__ import annotations
@@ -56,10 +46,10 @@ from pathlib import Path
 from typing import Any, Mapping
 
 
-TFA_PROJECT_RELEASE = "0.0.4"
+TFA_PROJECT_RELEASE = "0.0.5"
 SCRIPT_NAME = "tfa_common"
-SCRIPT_VERSION = "0.9.1"
-SCRIPT_BUILD = "0002"
+SCRIPT_VERSION = "0.9.3"
+SCRIPT_BUILD = "0001"
 SCRIPT_API_VERSION = "0.1"
 SETTINGS_SCHEMA_VERSION = "0.1"
 SUMMARY_SCHEMA_VERSION = "0.1"
@@ -81,32 +71,38 @@ def script_identity() -> Mapping[str, str]:
 
 
 # ---------------------------------------------------------------------------
-# Locate and import specialists in-process.
+# Locate and import tfa_core + the specialists in-process.
 # ---------------------------------------------------------------------------
 
 _THIS_DIR = Path(__file__).resolve().parent
 _SCRIPTS_DIR = _THIS_DIR.parent.parent
 
+_CORE_BUILD = ("tfa_core", "v0.1.0-build.0001")
 _SPECIALIST_BUILDS = (
-    ("tfa_acoustic_validator",      "v0.1.5-build.0001"),
-    ("tfa_physics_guard_validator",  "v0.1.4-build.0001"),
+    ("tfa_acoustic_validator",       "v0.1.6-build.0001"),
+    ("tfa_physics_guard_validator",  "v0.1.5-build.0001"),
     ("tfa_plot_exporter",            "v0.1.1-build.0001"),
     ("tfa_bao_validator",            "v0.1.1-build.0001"),
     ("tfa_rsd_validator",            "v0.1.0-build.0001"),
+    ("tfa_density_validator",        "v0.1.0-build.0001"),
+    ("tfa_cpl_fidelity_validator",   "v0.1.0-build.0001"),
 )
 
-for _name, _build in _SPECIALIST_BUILDS:
+for _name, _build in (_CORE_BUILD, *_SPECIALIST_BUILDS):
     _candidate = _SCRIPTS_DIR / _name / _build
     if _candidate.exists():
         _text = str(_candidate)
         if _text not in sys.path:
             sys.path.insert(0, _text)
 
-import tfa_acoustic_validator as _acoustic        # noqa: E402
-import tfa_physics_guard_validator as _guard      # noqa: E402
-import tfa_plot_exporter as _plots                # noqa: E402
-import tfa_bao_validator as _bao                  # noqa: E402
-import tfa_rsd_validator as _rsd                  # noqa: E402
+import tfa_core as _core                            # noqa: E402
+import tfa_acoustic_validator as _acoustic          # noqa: E402
+import tfa_physics_guard_validator as _guard        # noqa: E402
+import tfa_plot_exporter as _plots                  # noqa: E402
+import tfa_bao_validator as _bao                    # noqa: E402
+import tfa_rsd_validator as _rsd                    # noqa: E402
+import tfa_density_validator as _density            # noqa: E402
+import tfa_cpl_fidelity_validator as _cpl_fidelity  # noqa: E402
 
 
 def _unified_settings_path() -> Path:
@@ -135,7 +131,7 @@ def _atomic_write_json(path: Path, obj: object) -> None:
 
 
 def _read_json(path: Path) -> dict:
-    # B001: utf-8-sig strips a UTF-8 BOM if present; reads normally when absent.
+    # utf-8-sig strips a UTF-8 BOM if present; reads normally when absent.
     with path.open("r", encoding="utf-8-sig") as f:
         return json.load(f)
 
@@ -144,68 +140,38 @@ def run(
     settings_path: str | Path | None = None,
     results_root: str | Path | None = None,
 ) -> Mapping[str, Any]:
-    """Read potential from settings, validate, create run folder, call specialists.
+    """Read the potential from settings, validate, create a run folder, call specialists.
 
-    Parameters
-    ----------
-    settings_path:
-        Path to ``tfa-environment-settings.json``. Defaults to the unified
-        package-level file resolved by walking up from this script.
-    results_root:
-        Directory under which the timestamped run folder is created. Defaults
-        to ``<repo>/tfa-results/runs/``.
-
-    Returns
-    -------
-    dict with keys: ``code``, ``run_folder``, ``calls``, and ``desc``.
-    ``code`` is "OK" when both physics specialists succeeded, even if the
-    non-fatal specialists (plot exporter, BAO validator) failed.
+    Returns a dict with keys ``code``, ``run_folder``, ``calls``, ``desc``.
+    ``code`` is "OK" when both physics specialists succeed, even if the non-fatal
+    specialists fail.
     """
 
     src_settings = Path(settings_path) if settings_path is not None else DEFAULT_ENVIRONMENT_SETTINGS
     if not src_settings.exists():
-        return {
-            "code": "Error",
-            "desc": f"settings not found: {src_settings}",
-            "run_folder": None,
-            "calls": [],
-        }
+        return {"code": "Error", "desc": f"settings not found: {src_settings}", "run_folder": None, "calls": []}
 
-    # --- 1. Load settings and validate potential expressions ----------------
+    # --- 1. Load settings and validate potential expressions (via tfa_core) ---
     try:
-        # B001: read with utf-8-sig so a UTF-8 BOM is stripped transparently.
-        # load_environment_settings() uses encoding="utf-8" and would fail on a
-        # BOM-prefixed file; we replicate its JSON parse + structure check here
-        # and then call the downstream functions that accept the parsed dict.
         with src_settings.open("r", encoding="utf-8-sig") as _sf:
             settings = json.load(_sf)
         if not isinstance(settings, Mapping):
             raise ValueError("environment settings root must be a JSON object")
-        cosmology = _acoustic.cosmology_from_settings(settings)
-        V, dV_dphi = _acoustic.build_potential_from_settings(settings, cosmology)
-        potential_spec = _acoustic.potential_from_settings(settings)
-    except _acoustic.TFAError as exc:
-        return {
-            "code": "Error",
-            "desc": f"{exc.code}: {exc.message}",
-            "run_folder": None,
-            "calls": [],
-        }
+        cosmology = _core.cosmology_from_settings(settings)
+        V, dV_dphi = _core.build_potential_from_settings(settings, cosmology)
+        potential_spec = _core.potential_from_settings(settings)
+    except _core.TFAError as exc:
+        return {"code": "Error", "desc": f"{exc.code}: {exc.message}", "run_folder": None, "calls": []}
     except Exception as exc:
-        return {
-            "code": "Error",
-            "desc": f"settings error: {exc}",
-            "run_folder": None,
-            "calls": [],
-        }
+        return {"code": "Error", "desc": f"settings error: {exc}", "run_folder": None, "calls": []}
 
     initial_phi = float(potential_spec["initial_phi"])
     initial_phi_N = float(potential_spec.get("initial_phi_N", 0.0))
     benchmark_id = str(potential_spec.get("benchmark_id") or "unnamed")
 
-    # --- 2. Validate by constructing the route contract ---------------------
+    # --- 2. Validate by constructing the route contract ----------------------
     try:
-        _acoustic.PotentialRoute(
+        _core.PotentialRoute(
             benchmark_id=benchmark_id,
             V=V,
             dV_dphi=dV_dphi,
@@ -213,14 +179,9 @@ def run(
             initial_phi_N=initial_phi_N,
         )
     except Exception as exc:
-        return {
-            "code": "Error",
-            "desc": f"potential validation failed: {exc}",
-            "run_folder": None,
-            "calls": [],
-        }
+        return {"code": "Error", "desc": f"potential validation failed: {exc}", "run_folder": None, "calls": []}
 
-    # --- 3. Create run folder and freeze settings ---------------------------
+    # --- 3. Create run folder and freeze settings ----------------------------
     export_section = settings.get("user_adjustable", {}).get("export", {})
     prefix = str(export_section.get("prefix", "tfa")) or "tfa"
     ts_fmt = str(export_section.get("timestamp_format", "%Y%m%d_%H%M%S"))
@@ -235,15 +196,12 @@ def run(
     run_folder = root / f"{prefix}_{stamp}_{run_id}"
     run_folder.mkdir(parents=True, exist_ok=False)
 
-    # B001: parse-and-reserialize instead of shutil.copy2 so the frozen copy
-    # is always written as clean UTF-8 (no BOM), regardless of how the original
-    # was saved. Uses _atomic_write_json for consistency and crash-safety.
     frozen_settings = run_folder / FROZEN_SETTINGS_FILENAME
     with src_settings.open("r", encoding="utf-8-sig") as _src_f:
         _settings_data = json.load(_src_f)
     _atomic_write_json(frozen_settings, _settings_data)
 
-    # --- 4. Write initial summary -------------------------------------------
+    # --- 4. Write the initial summary ----------------------------------------
     contract = {
         "benchmark_id": benchmark_id,
         "V_of_phi": str(potential_spec.get("V_of_phi", "")),
@@ -274,17 +232,17 @@ def run(
     summary_path = run_folder / SUMMARY_FILENAME
     _atomic_write_json(summary_path, summary)
 
-    # --- 5. Call specialists in-process -------------------------------------
-    # Physics specialists: failure sets overall code to "Error".
-    # Non-fatal specialists: failure is recorded but does not affect code.
+    # --- 5. Call specialists in-process --------------------------------------
     physics_specialists = (
-        ("tfa_acoustic_validator",      _acoustic.run_acoustic_validator),
+        ("tfa_acoustic_validator",       _acoustic.run_acoustic_validator),
         ("tfa_physics_guard_validator",  _guard.run_physics_guard_validator),
     )
     nonfatal_specialists = (
-        ("tfa_plot_exporter",  _plots.run_plot_exporter),
-        ("tfa_bao_validator",  _bao.run_bao_validator),
-        ("tfa_rsd_validator",  _rsd.run_rsd_validator),
+        ("tfa_plot_exporter",            _plots.run_plot_exporter),
+        ("tfa_bao_validator",            _bao.run_bao_validator),
+        ("tfa_rsd_validator",            _rsd.run_rsd_validator),
+        ("tfa_density_validator",        _density.run_density_validator),
+        ("tfa_cpl_fidelity_validator",   _cpl_fidelity.run_cpl_fidelity_validator),
     )
 
     calls: list[dict] = []
@@ -322,7 +280,7 @@ def run(
     for name, fn in nonfatal_specialists:
         _call_specialist(name, fn)
 
-    # --- 6. Finalize summary ------------------------------------------------
+    # --- 6. Finalize summary -------------------------------------------------
     summary = _read_json(summary_path)
     summary["run"]["status"] = "completed" if physics_ok else "completed_with_errors"
     _atomic_write_json(summary_path, summary)

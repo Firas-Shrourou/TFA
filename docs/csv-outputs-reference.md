@@ -13,10 +13,13 @@ w_of_z.csv
 physics_guards.csv
 bao_results_per_datum.csv
 rsd_results_per_datum.csv
+density_results.csv
+cpl_fidelity_results.csv
 ```
 
-A gated or diagnostic-disabled run may contain only the always-written products,
-such as `trajectory.csv` and `physics_guards.csv`.
+A gated or diagnostic-disabled run may contain only the non-gated products:
+`trajectory.csv`, `physics_guards.csv`, `density_results.csv`, and
+`cpl_fidelity_results.csv`.
 
 ## Product map
 
@@ -29,6 +32,8 @@ such as `trajectory.csv` and `physics_guards.csv`.
 | `physics_guards.csv` | `tfa_physics_guard_validator` | Written after successful guard validation. | Readers. |
 | `bao_results_per_datum.csv` | `tfa_bao_validator` | Written when BAO is enabled and the normalized history exists. | Readers and plotting/audit workflows. |
 | `rsd_results_per_datum.csv` | `tfa_rsd_validator` | Written when RSD is enabled and the normalized history exists. | Readers and plotting/audit workflows. |
+| `density_results.csv` | `tfa_density_validator` | Written for every completed run (non-gated) when the module is enabled. | Readers and external analysis. |
+| `cpl_fidelity_results.csv` | `tfa_cpl_fidelity_validator` | Written for every completed run (non-gated) when the module is enabled. | Readers and external analysis. |
 
 The summary file `run_results_summary.json` names the CSV files that were
 written by each module. See `docs/run-summary-reference.md`.
@@ -42,7 +47,7 @@ example:
 # quantity,H_X
 # units,km s^-1 Mpc^-1
 z,H_X
-0,67.5821638057
+0,65.1509845654
 ```
 
 These rows are part of the file contract. When loading such files with Python,
@@ -61,6 +66,8 @@ Files without leading metadata rows:
 - `trajectory.csv`
 - `bao_results_per_datum.csv`
 - `rsd_results_per_datum.csv`
+- `density_results.csv`
+- `cpl_fidelity_results.csv`
 
 ## `trajectory.csv`
 
@@ -284,6 +291,55 @@ The run-level RSD chi-squared summary is stored in
 `run_results_summary.json`. This CSV is the per-datum growth-residual table
 behind that summary.
 
+## `density_results.csv`
+
+Written by `tfa_density_validator`. Non-gated: written for every completed
+run, including `EXCLUDED` routes.
+
+One row per indicator. The only row carrying a pull is `H0_X_kms`; the rest
+are descriptive or echoed audit values, by design (an `Omega_m` pull would
+double-count the `H0` pull, since the route, Planck, and DESI share the same
+physical matter density).
+
+Columns:
+
+| Column | Meaning |
+|---|---|
+| `indicator` | Indicator name (see below). |
+| `value` | Computed value. |
+| `reference` | Reference value, where one applies. |
+| `reference_sigma` | Reference uncertainty, where one applies. |
+| `pull` | `(value - reference) / sigma`; only for `H0_X_kms`. |
+| `status` | Pull class, `descriptive`, `audit_echo`, `no_pull`, or `PASS`/`WARN`. |
+| `note` | Provenance and interpretation note. |
+
+Indicators include `H0_X_kms` (the pull vs the DESI reference), `delta_X`
+(the engine's audit signature vs `H0_ref` -- a different reference than the
+DESI pull, both labeled), `bands_consistent` (cross-check that the
+contract's `h0_bands` equal the `desi_reference` mean +/- 1/2/3 sigma),
+`Omega_phi_0` and `Omega_m_0` (echoed from the engine's energy fractions),
+`closure_residual_z0`, `z_eq_route`, `omega_m_residual_pct`,
+`fde_max_abs_dev` and `f_de_at_z*` markers (dark-energy density evolution vs
+the LCDM constant), `one_plus_w0`, `z_thaw`, and `wa_tangent` (route
+properties; `wa_tangent` is `-dw/da` at `a = 1`, a derivative of the exact
+route and never a CPL fit).
+
+## `cpl_fidelity_results.csv`
+
+Written by `tfa_cpl_fidelity_validator`. Non-gated.
+
+One row per indicator, with columns `indicator`, `value`, `status`, `note`.
+CPL is audited here, never adopted: the fitted `(w0, wa)` rows carry the
+status `audited` and exist only so the error report can be attached to them.
+
+| Indicator group | Fields |
+|---|---|
+| Fit | `cpl_w0_fit`, `cpl_wa_fit` (unweighted least squares of the exact `w(a)` over the configured fit range). |
+| Infidelity | `cpl_dw_max`, `cpl_dw_at_fit_edge`, `cpl_df_de_max`, `cpl_dDM_star_pct` (the percent error in the distance to recombination a CPL-fed pipeline inherits). |
+| Phantom audit | `cpl_w_asymptote` (`w0 + wa`, the `a -> 0` limit), `cpl_z_cross` (where the fit crosses `w = -1`), `cpl_w_min`, `cpl_phantom_fraction`, `cpl_phantom_flag`. |
+| Context | `desi_reference_z_cross` (the DESI reference posterior's own crossing, computed from the contract). |
+| Verdict | `cpl_verdict`: `FAITHFUL` / `MARGINAL` / `UNFAITHFUL`, with `_PHANTOM` appended and the verdict capped at `MARGINAL_PHANTOM` whenever the fit crosses. |
+
 ## Gating behavior
 
 The acoustic validator always writes `trajectory.csv` after a successful scalar
@@ -294,6 +350,8 @@ When the export gate rejects a route:
 
 - `trajectory.csv` is still written.
 - `physics_guards.csv` can still be written.
+- `density_results.csv` and `cpl_fidelity_results.csv` are still written
+  (their validators are non-gated).
 - `expansion_history_shape.csv` is absent.
 - `expansion_history_h0x_normalized.csv` is absent.
 - `w_of_z.csv` is absent.

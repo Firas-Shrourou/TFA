@@ -1,0 +1,10 @@
+{
+  "script_name": "tfa_cpl_fidelity_validator",
+  "approved_version": "0.1.0",
+  "approved_build": "0001",
+  "script_api_version": "0.1",
+  "tfa_project_release": "0.0.5",
+  "approved_folder": "v0.1.0-build.0001",
+  "settings_schema_version": "0.1",
+  "core_dependency": "tfa_core 0.1.0 build 0001"
+}

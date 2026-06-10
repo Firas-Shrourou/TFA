@@ -125,6 +125,11 @@ column is numeric.
 
 Old and new runs can be combined together. Missing fields, nulls, moved fields,
 new fields, removed fields, and type drift do not stop the combine operation.
+Summaries from release 0.0.5 add the `results.density_validator` and
+`results.cpl_fidelity_validator` blocks; they flatten like every other field,
+and combining them with older summaries simply yields `N/A` cells for the new
+columns in the older rows (a typical 8-route 0.0.5 comparison yields roughly
+240 columns).
 
 ## Schema audit
 

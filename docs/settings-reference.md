@@ -8,7 +8,7 @@ switches, and execution trace behavior.
 In normal use, edit this file, then run one of the package-root launchers. At
 runtime, TFA copies the exact settings file into the timestamped run folder as
 `environment-settings.json`. That frozen copy is the audit record used by the
-acoustic, guard, plot, BAO, and RSD stages.
+acoustic, guard, plot, BAO, RSD, density, and CPL-fidelity stages.
 
 ## Location
 
@@ -60,14 +60,17 @@ The `user_adjustable` object contains:
 | `potential` | Defines the scalar route: route label, potential expression, derivative expression, parameters, initial field state, and notes. |
 | `cosmology` | Defines flat-background present-day cosmological values. |
 | `acoustic_priors` | Defines the early-time acoustic anchor used to solve for `H0_X`. |
-| `planck_h0_bands` | Defines the band labels used to classify the derived `H0_X`. |
+| `h0_bands` | Defines the evaluation bands used to classify the derived `H0_X` (DESI DR2 w0waCDM by default). |
 | `integration` | Defines the scalar ODE interval and solver tolerances. |
 | `export` | Defines output-grid tolerances and run-folder naming behavior. |
-| `export_gate` | Defines which acoustic bands are allowed to export normalized histories and downstream diagnostics. |
+| `export_gate` | Defines which bands are allowed to export normalized histories and gated diagnostics. |
 | `physics_guards` | Defines canonical, thawing, phantom-crossing, and BBN thresholds. |
 | `execution` | Defines debug printing and trace-file behavior. |
 | `bao_validator` | Enables or disables BAO diagnostics. |
 | `rsd_validator` | Enables or disables RSD diagnostics. |
+| `density_validator` | Configures the CPL-free density-sector diagnostic (non-gated). |
+| `cpl_fidelity_validator` | Configures the CPL audit (non-gated; CPL audited, never adopted). |
+| `desi_reference` | Records the DESI DR2 w0waCDM reference values used by the evaluation bands and the density validator's `H0` pull. |
 
 ## Defining a scalar route
 
@@ -197,17 +200,19 @@ metadata. `c_kms` is the speed of light in km/s.
 }
 ```
 
-This block defines the early-time physical anchor used to solve for the
-route-specific acoustic-preserving `H0_X`. TFA computes the route-generated
-shape `E_X(z)`, then solves for the `H0_X` that matches `theta_star_target`.
+This block defines the early-time physical anchor used to compute the
+required normalization `H0_X`: TFA normalizes the route-generated shape to
+`E_X(0) = 1`, then computes in closed form the `H0` the route requires to
+match `theta_star_target`.
 
-The resulting `H0_X` is classified by `planck_h0_bands`:
+The resulting `H0_X` is classified by `h0_bands`:
 
 ```json
-"planck_h0_bands": {
-  "strict": [66.82, 67.9],
-  "loose_2s": [66.28, 68.44],
-  "loose_3s": [65.74, 68.98]
+"h0_bands": {
+  "band_source": "DESI_DR2_w0waCDM_DESI+CMB+DESY5: H0=66.74 +/- 0.56 (mean +/- 1/2/3 sigma)",
+  "strict": [66.18, 67.30],
+  "loose_2s": [65.62, 67.86],
+  "loose_3s": [65.06, 68.42]
 }
 ```
 
@@ -219,6 +224,12 @@ LOOSE_2S
 LOOSE_3S
 EXCLUDED
 ```
+
+The bands are an evaluation policy, fully researcher-configurable: substitute
+any reference interval appropriate to your analysis. The default values are
+the DESI DR2 w0waCDM combined-fit mean +/- 1/2/3 sigma, matching the
+`desi_reference` block; the density validator cross-checks that the two
+blocks have not drifted apart (`bands_consistent`).
 
 ## Integration
 
@@ -292,7 +303,7 @@ monotonicity, phantom-crossing status, and scalar density fraction at Big Bang
 Nucleosynthesis. The BBN check is evaluated at `bbn_z` against
 `bbn_omega_phi_bound`.
 
-## BAO and RSD switches
+## Diagnostic switches
 
 ```json
 "bao_validator": {
@@ -300,12 +311,45 @@ Nucleosynthesis. The BBN check is evaluated at `bbn_z` against
 },
 "rsd_validator": {
   "enabled": true
+},
+"density_validator": {
+  "enabled": true,
+  "fde_z_max": 3.0,
+  "fde_marker_z": [0.5, 1.0, 2.0],
+  "thaw_threshold": 0.01
+},
+"cpl_fidelity_validator": {
+  "enabled": true,
+  "fit_z_max": 3.0,
+  "dw_faithful": 0.01,
+  "dw_marginal": 0.05,
+  "ddm_faithful_pct": 0.1,
+  "ddm_marginal_pct": 0.5
+},
+"desi_reference": {
+  "_source": "DESI DR2 w0waCDM, DESI+CMB+DESY5 (arXiv:2503.14738)",
+  "Omega_m": 0.3191, "Omega_m_sigma": 0.0056,
+  "H0_kms": 66.74, "H0_sigma": 0.56,
+  "w0": -0.752, "w0_sigma": 0.057,
+  "wa": -0.86, "wa_sigma": 0.23
 }
 ```
 
 These switches enable or disable downstream diagnostics. If disabled, the skip
 is recorded and the hub can still return `OK` if the acoustic and guard stages
 succeed.
+
+BAO and RSD are **gated**: they require the normalized history, which the
+export gate skips for `EXCLUDED` routes by default. The density and
+CPL-fidelity validators are **non-gated**: they need only `trajectory.csv`
+and the summary, so they run for every completed route. For the density
+validator, `fde_z_max` and `fde_marker_z` control the `f_DE(z)` reporting
+range and markers, and `thaw_threshold` defines the thawing-onset redshift.
+For the CPL audit, `fit_z_max` sets the CPL fit range and the `dw_*` /
+`ddm_*` thresholds define the FAITHFUL / MARGINAL / UNFAITHFUL verdict (any
+phantom crossing caps the verdict at MARGINAL_PHANTOM). If either block is
+absent from an older settings file, the validators run with the defaults
+shown above.
 
 The BAO validator uses bundled DESI DR2 data under:
 
@@ -360,11 +404,14 @@ w_of_z.csv
 physics_guards.csv
 bao_results_per_datum.csv
 rsd_results_per_datum.csv
+density_results.csv
+cpl_fidelity_results.csv
 plots and diagnostic figures
 ```
 
 Some files are gated. For example, normalized histories and BAO/RSD products
-are not emitted when the export gate rejects the route.
+are not emitted when the export gate rejects the route. The density and
+CPL-fidelity products are written for every completed run.
 
 ## Schema metadata
 
@@ -380,6 +427,6 @@ expected by this release:
 Current values:
 
 ```text
-settings_file_version = 1.0.2
-tfa_package_release = 0.0.4
+settings_file_version = 1.2.0
+tfa_package_release = 0.0.5
 ```

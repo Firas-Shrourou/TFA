@@ -25,7 +25,7 @@ os.chdir(PACKAGE_ROOT.parent)
 
 approved = json.loads(
     (PACKAGE_ROOT / "scripts" / "tfa_common" / "approved-version.json")
-    .read_text(encoding="utf-8")
+    .read_text(encoding="utf-8-sig")
 )
 sys.path.insert(
     0,

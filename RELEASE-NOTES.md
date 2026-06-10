@@ -10,18 +10,84 @@ version independently of the project release.
 
 | Script | Version | Build | Folder | Role |
 |---|---:|---:|---|---|
-| `tfa_common` | `0.9.1` | `0002` | `scripts/tfa_common/v0.9.1-build.0002/` | Hub — orchestrates all five specialists |
-| `tfa_acoustic_validator` | `0.1.5` | `0001` | `scripts/tfa_acoustic_validator/v0.1.5-build.0001/` | Engine — ODE, H0X, all CSVs, r_drag, energy_fractions |
-| `tfa_physics_guard_validator` | `0.1.4` | `0001` | `scripts/tfa_physics_guard_validator/v0.1.4-build.0001/` | Guards — canonical, thawing, phantom, BBN |
-| `tfa_plot_exporter` | `0.1.1` | `0001` | `scripts/tfa_plot_exporter/v0.1.1-build.0001/` | Presentation — 6 diagnostic plots |
-| `tfa_bao_validator` | `0.1.1` | `0001` | `scripts/tfa_bao_validator/v0.1.1-build.0001/` | BAO — DESI DR2 distance closure, drag-epoch ruler |
-| `tfa_rsd_validator` | `0.1.0` | `0001` | `scripts/tfa_rsd_validator/v0.1.0-build.0001/` | RSD — f·σ₈ growth rate, 18-point gold compilation |
-| `tfa_combined_csv_results` | `0.1.0` | `0001` | `scripts/tfa_combined_csv_results/v0.1.0-build.0001/` | Utility — combine arbitrary run summaries into one union CSV |
-| `tfa_normalized_history_generator` | — | — | — | **Deprecated** — moved to `archive/` |
-| `tfa_csv_exporter` | — | — | — | **Deprecated** — moved to `archive/` |
+| `tfa_common` | `0.9.3` | `0001` | `scripts/tfa_common/v0.9.3-build.0001/` | Hub - orchestrates core-based specialists (7-specialist chain) |
+| `tfa_core` | `0.1.0` | `0001` | `scripts/tfa_core/v0.1.0-build.0001/` | Shared scalar ODE/settings/FLRW core |
+| `tfa_acoustic_validator` | `0.1.6` | `0001` | `scripts/tfa_acoustic_validator/v0.1.6-build.0001/` | Engine - normalized Option A H0_X, history, energy budget |
+| `tfa_physics_guard_validator` | `0.1.5` | `0001` | `scripts/tfa_physics_guard_validator/v0.1.5-build.0001/` | Guards - canonical, thawing, phantom, BBN via tfa_core |
+| `tfa_plot_exporter` | `0.1.1` | `0001` | `scripts/tfa_plot_exporter/v0.1.1-build.0001/` | Presentation - 6 diagnostic plots |
+| `tfa_bao_validator` | `0.1.1` | `0001` | `scripts/tfa_bao_validator/v0.1.1-build.0001/` | BAO - DESI DR2 distance closure, drag-epoch ruler |
+| `tfa_rsd_validator` | `0.1.0` | `0001` | `scripts/tfa_rsd_validator/v0.1.0-build.0001/` | RSD - f-sigma8 growth rate, 18-point gold compilation |
+| `tfa_density_validator` | `0.1.0` | `0001` | `scripts/tfa_density_validator/v0.1.0-build.0001/` | Density - CPL-free H0 pull vs DESI, energy budget, f_DE(z), thawing markers (non-gated) |
+| `tfa_cpl_fidelity_validator` | `0.1.0` | `0001` | `scripts/tfa_cpl_fidelity_validator/v0.1.0-build.0001/` | CPL audit - best-fit CPL error report + phantom-crossing audit (non-gated) |
+| `tfa_combined_csv_results` | `0.1.0` | `0001` | `scripts/tfa_combined_csv_results/v0.1.0-build.0001/` | Utility - combine arbitrary run summaries into one union CSV |
+| `tfa_normalized_history_generator` | - | - | `../scripts-archive/tfa_normalized_history_generator/` | Deprecated - outside working package |
+| `tfa_csv_exporter` | - | - | `../scripts-archive/tfa_csv_exporter/` | Deprecated - outside working package |
 
 ---
 
+## Release 0.0.5 - 2026-06-10
+
+**Feature release - density and CPL-fidelity validators (T004 deliverables 5b/5c).**
+
+Design decision recorded: the originally drafted density validator would have
+reduced the route's w_phi(z) to a descriptive CPL (w0, wa) and pulled it
+against the DESI w0waCDM posterior. This was rejected - TFA exists to escape
+CPL, which is unfaithful to thawing fields (the divergence grows at high z and
+with thawing strength, and a best-fit CPL silently crosses into the phantom
+sector a canonical field can never reach). The deliverable was split into two
+specialists: one strictly CPL-free, one that audits CPL instead of adopting it.
+
+### tfa_density_validator v0.1.0 build 0001 (new)
+
+CPL-free density-sector diagnostics. Non-gated (runs for EXCLUDED routes too,
+where the H0 pull quantifies HOW excluded) and non-fatal. The only pull is
+`H0_X` vs the `desi_reference` block (66.74 +/- 0.56); Omega_m is quoted
+reference-only (an Omega_m pull would double-count the H0 pull - all three of
+route, Planck, and DESI share omega_m ~ 0.142-0.143). Also reports the exact
+energy budget (echoed from the engine's `energy_fractions`; no new Omega_m
+convention), f_DE(z) = rho_phi(z)/rho_phi(0) distance-from-Lambda markers, and
+thawing-strength route properties (1+w(0), z_thaw, -dw/da at a=1). Includes a
+`bands_consistent` cross-check that `h0_bands` still equal the desi_reference
+mean +/- 1/2/3 sigma. Outputs: `density_results.csv`, `density_fde.png/pdf`,
+summary block `results["density_validator"]`.
+
+### tfa_cpl_fidelity_validator v0.1.0 build 0001 (new)
+
+CPL audited, never adopted. Fits the best CPL to the route's exact w(z), then
+reports its errors: `cpl_dw_max` (grows with z and thawing strength),
+`cpl_df_de_max` (rho_DE error), `cpl_dDM_star_pct` (the acoustic-distance
+error a CPL-fed pipeline such as CLASS inherits), and the closed-form
+phantom-crossing audit (`cpl_z_cross` at a_c = 1 + (1+w0)/wa, `cpl_w_min`,
+`cpl_phantom_fraction`, `cpl_w_asymptote` = w0+wa, `cpl_phantom_flag`).
+Verdict FAITHFUL / MARGINAL / UNFAITHFUL; any phantom crossing appends
+`_PHANTOM` and caps the verdict at MARGINAL_PHANTOM. The physics guard
+certifies the FIELD never crosses; this audits the field's CPL shadow. No TFA
+component consumes the fitted (w0, wa). Outputs: `cpl_fidelity_results.csv`,
+`cpl_fidelity.png/pdf`, summary block `results["cpl_fidelity_validator"]`.
+
+### tfa_common v0.9.3 build 0001
+
+Adds both new specialists to the in-process chain as the sixth and seventh
+non-fatal calls: acoustic (fatal) -> guards (fatal) -> plots -> BAO -> RSD ->
+density -> cpl_fidelity. Physics verdict unchanged.
+
+### tfa-environment-settings.json 1.2.0
+
+New optional blocks `user_adjustable.density_validator` and
+`user_adjustable.cpl_fidelity_validator` (mirrored in
+`read_only_hardcoded_defaults`); the `desi_reference` mirror added to
+`read_only_hardcoded_defaults` (it was missing); `compatible_scripts` extended.
+Minor version bump - older frozen settings keep working (missing blocks default
+to enabled with the documented defaults). All 8 sample-route settings files
+refreshed to 1.2.0.
+
+---
+
+## T004 correction - 2026-06-09
+
+The active 0.0.4 package stack now uses `tfa_core 0.1.0`, `tfa_acoustic_validator 0.1.6`, `tfa_physics_guard_validator 0.1.5`, and `tfa_common 0.9.2`. The acoustic engine solves H0_X from the normalized scalar shape and classifies against the DESI DR2 w0waCDM DESI+CMB+DESY5 H0 bands: STRICT [66.18, 67.30], LOOSE_2S [65.62, 67.86], LOOSE_3S [65.06, 68.42]. Sample-route settings were refreshed to this contract.
+
+---
 ## T002 Utility Addition — 2026-06-06
 
 ### tfa_combined_csv_results v0.1.0 build 0001

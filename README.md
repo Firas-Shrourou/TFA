@@ -8,10 +8,10 @@ route-level analysis of canonical thawing scalar-field dark energy.
 
 A thawing route is specified by a scalar potential `V_X(phi)`, its field-space
 derivative, and frozen initial field data. TFA integrates the homogeneous
-Klein-Gordon system in a flat FLRW background, derives the scalar trajectory and
-dimensionless expansion shape, fixes the route's acoustic-preserving Hubble
-normalization, and then evaluates physical and observational diagnostics on the
-same normalized history.
+Klein-Gordon system in a flat FLRW background, derives the scalar trajectory
+and dimensionless expansion shape, computes the route's required Hubble
+normalization from the CMB acoustic scale, and then evaluates physical and
+observational diagnostics on the same normalized history.
 
 The package is intended for model exploration, benchmark generation, and the
 preparation of traceable diagnostic material for thawing scalar-field studies.
@@ -32,8 +32,10 @@ internally inconsistent: the same scalar-generated `E_X(z)` evaluated with
 different Hubble constants can imply different distances, sound horizons, and
 growth predictions.
 
-TFA addresses this by deriving a route-specific Hubble constant `H0_X` from the
-CMB acoustic angular scale. The normalized history
+TFA addresses this by computing, in closed form, the route-specific Hubble
+constant `H0_X` that the route requires in order to reproduce the observed
+CMB acoustic angle under a fixed, sourced early-universe anchor. The
+normalized history
 
 ```text
 H_X(z) = H0_X * E_X(z)
@@ -49,11 +51,13 @@ For each route, TFA performs the following chain:
 V_X(phi), initial field data
 -> scalar ODE integration
 -> E_X(z)
--> acoustic-preserving H0_X
+-> required normalization H0_X
 -> H_X(z)
 -> physics guards
 -> BAO diagnostics
 -> RSD diagnostics
+-> density-sector diagnostics
+-> CPL fidelity audit
 -> CSV, JSON, and plot exports
 ```
 
@@ -68,6 +72,19 @@ the bundled DESI DR2 BAO data vector.
 The RSD validator evolves the linear growth factor inside the same `H_X(z)`,
 computes `f_sigma8(z)`, and evaluates residuals against an 18-point
 redshift-space distortion compilation.
+
+The density validator is strictly CPL-free and non-gated: it scores the
+route's `H0_X` against the DESI DR2 w0waCDM reference (the band verdict as a
+continuous z-score), reports the exact dark-energy density evolution
+`f_DE(z) = rho_phi(z)/rho_phi(0)`, and records thawing-strength route
+properties. It runs for excluded routes too, where the pull quantifies how
+excluded they are.
+
+The CPL fidelity validator audits CPL without adopting it: it fits the best
+`(w0, wa)` to the route's exact `w(z)` and reports that stand-in's errors,
+including the closed-form phantom audit -- the best-fit CPL of every thawing
+route crosses `w = -1`, entering a sector the canonical field can never
+reach. No TFA component consumes the fitted values.
 
 Every completed run is written as a timestamped folder containing the frozen
 input configuration, trajectory and expansion tables, per-datum residual
@@ -227,6 +244,8 @@ Each completed run can include:
 - `physics_guards.csv`: row-level physical guard record.
 - `bao_results_per_datum.csv`: BAO residual table when BAO is enabled.
 - `rsd_results_per_datum.csv`: RSD residual table when RSD is enabled.
+- `density_results.csv`: CPL-free density-sector indicators (non-gated).
+- `cpl_fidelity_results.csv`: CPL audit indicators and verdict (non-gated).
 - PNG/PDF diagnostic plots.
 
 The run folder is the unit of reproducibility. The frozen settings record what
@@ -254,23 +273,44 @@ See `docs/summary-combiner.md` for the full utility reference.
 
 ## Verification snapshot
 
-The current stack has been verified against all eight bundled benchmark routes.
-All runs returned `code=OK`, all physics guards passed, and the acoustic
-verdicts are stable relative to the release record in `RELEASE-NOTES.md`.
+The current stack has been verified against all eight bundled benchmark
+routes. All runs returned `code=OK` through the full seven-module chain, and
+all physics guards passed. `H0_X` is the required normalization; the band is
+the classification against the DESI DR2 w0waCDM evaluation bands
+(`66.74 +/- 0.56`, mean +/- 1/2/3 sigma); the `H0` pull is the same verdict
+as a continuous z-score. BAO/RSD values for the four routes outside the bands
+(marked `*`) come from gate-disabled runs of the same contracts; their
+degraded BAO fit shows that the acoustic verdict carries real downstream
+weight. The table was produced with `tfa_combined_csv_results`.
 
-| Benchmark | H0_X (km/s/Mpc) | Band | BAO chi2/dof | RSD chi2/dof | sigma8_X |
-|---|---:|---|---:|---:|---:|
-| `WQI_F765` | 67.478 | STRICT | 1.566 | 1.509 | 0.705 |
-| `WQI_F680` | 67.508 | STRICT | 2.086 | 1.656 | 0.699 |
-| `WLI_1` | 67.598 | STRICT | 4.983 | 2.120 | 0.682 |
-| `WLI_2` | 67.865 | STRICT | 25.783 | 3.965 | 0.636 |
-| `WLI_3` | 68.201 | LOOSE_2S | 71.500 | 6.717 | 0.589 |
-| `WLI_4` | 67.582 | STRICT | 4.302 | 2.030 | 0.685 |
-| `WLI_5` | 67.833 | STRICT | 22.531 | 3.726 | 0.641 |
-| `WLI_6` | 68.150 | LOOSE_2S | 63.763 | 6.303 | 0.596 |
+| Benchmark | H0_X (km/s/Mpc) | DESI band | H0 pull | BAO chi2/dof | RSD chi2/dof | sigma8_X |
+|---|---:|---|---:|---:|---:|---:|
+| `WQI_F765` | 66.210 | STRICT | -0.95 | 3.69 | 1.12 | 0.726 |
+| `WQI_F680` | 65.921 | LOOSE_2S | -1.46 | 4.11 | 1.13 | 0.724 |
+| `WLI_1` | 65.151 | LOOSE_3S | -2.84 | 5.49 | 1.15 | 0.720 |
+| `WLI_2` | 62.916 | EXCLUDED | -6.83 | 11.12* | 1.24* | 0.709* |
+| `WLI_3` | 60.390 | EXCLUDED | -11.34 | 21.20* | 1.38* | 0.697* |
+| `WLI_4` | 65.289 | LOOSE_3S | -2.59 | 5.23 | 1.15 | 0.721 |
+| `WLI_5` | 63.167 | EXCLUDED | -6.38 | 10.33* | 1.23* | 0.710* |
+| `WLI_6` | 60.741 | EXCLUDED | -10.71 | 19.48* | 1.36* | 0.698* |
 
 These values are demonstration outputs, not a claim that TFA is a full
 parameter-inference framework or a replacement for Boltzmann solvers.
+
+## Engine validation
+
+TFA's engine has been validated against two independent codes. ScalPy, a
+dedicated scalar-field cosmology code that integrates the same physics
+through a different formulation and solver, reproduces TFA's `w(z)`,
+`Omega_phi(z)`, and normalized shape `E(z)` to better than 0.01 percent on
+all eight demonstration routes, and the required `H0_X` to within
+0.005 km/s/Mpc, with an identical band classification. CLASS, a full
+Boltzmann solver fed each route's CPL summary, corroborates the same
+admissible/excluded split; its remaining 0.5-2.7 km/s/Mpc offset is located
+in the `omega_m` self-consistency convention and is tracked, route by route,
+by the `omega_m_residual_pct` field that the engine reports on every run --
+the CPL fidelity audit shows the CPL shape itself contributes only
+0.002-0.009 km/s/Mpc to the distance scale.
 
 ## Scope
 
@@ -292,16 +332,19 @@ TFA tracks project releases, script versions, script builds, settings schema,
 and settings-file versions independently. A project release is a snapshot of
 the approved script builds and package files that belong together.
 
-Current approved script stack:
+Current approved script stack (TFA project release 0.0.5):
 
 | Script | Version | Build | Role |
 |---|---:|---:|---|
-| `tfa_common` | `0.9.1` | `0002` | Pipeline orchestration |
-| `tfa_acoustic_validator` | `0.1.5` | `0001` | ODE integration, acoustic normalization, CSV exports |
-| `tfa_physics_guard_validator` | `0.1.4` | `0001` | Canonical thawing guard checks |
+| `tfa_common` | `0.9.3` | `0001` | Pipeline orchestration (7-specialist chain) |
+| `tfa_core` | `0.1.0` | `0001` | Shared scalar ODE, settings, FLRW, I/O, encoding core |
+| `tfa_acoustic_validator` | `0.1.6` | `0001` | ODE integration, required normalization, CSV exports |
+| `tfa_physics_guard_validator` | `0.1.5` | `0001` | Canonical thawing guard checks |
 | `tfa_plot_exporter` | `0.1.1` | `0001` | Diagnostic plot generation |
 | `tfa_bao_validator` | `0.1.1` | `0001` | DESI DR2 BAO diagnostics |
 | `tfa_rsd_validator` | `0.1.0` | `0001` | RSD growth diagnostics |
+| `tfa_density_validator` | `0.1.0` | `0001` | CPL-free density-sector diagnostics (non-gated) |
+| `tfa_cpl_fidelity_validator` | `0.1.0` | `0001` | CPL audit: error report and phantom audit (non-gated) |
 | `tfa_combined_csv_results` | `0.1.0` | `0001` | Summary aggregation utility |
 
 See `RELEASE-NOTES.md` for the full release history.

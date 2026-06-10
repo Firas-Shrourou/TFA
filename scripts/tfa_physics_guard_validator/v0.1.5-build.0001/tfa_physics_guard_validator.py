@@ -1,69 +1,57 @@
 """
 Standalone TFA physics guard validator.
 
-This script evaluates the FEU v4.0 physics guard logic as reusable TFA
-endpoints:
+This script evaluates the physics guard logic as reusable TFA endpoints:
 
 - ``canonical_ok``
 - ``canonical_thawing_ok``
 - ``BBN_OK``
 - ``phantom_crossing_ok``
 
-It does not import ``tfa_common.py``. It imports ``tfa_acoustic_validator.py``
-for the shared ``PotentialRoute`` contract, environment settings, ODE
-integration, trace handling, and graceful error handling.
+It depends only on ``tfa_core`` (the shared utility module) for the
+``PotentialRoute`` contract, settings resolution, ODE integration, the FLRW
+state evaluation, trace handling, and graceful error handling. It does NOT
+import ``tfa_acoustic_validator``; the guard and the engine are independent
+specialists that share ``tfa_core``.
+
+Identity: tfa_physics_guard_validator 0.1.5 build 0001.
 """
 
 from __future__ import annotations
 
 import csv
 import json
-import os
 import sys
-import traceback
 from pathlib import Path
 from typing import Mapping, Sequence
 
 import numpy as np
 
 
+# ---------------------------------------------------------------------------
+# Resolve tfa_core (the only cross-script dependency) and import it.
+# ---------------------------------------------------------------------------
 _THIS_DIR = Path(__file__).resolve().parent
-_PACKAGE_VALIDATOR_CANDIDATES = (
-    _THIS_DIR.parent.parent / "tfa_acoustic_validator" / "v0.1.3-build.0001",
-    _THIS_DIR.parent.parent.parent / "tfa_acoustic_validator" / "v0.1.3-build.0001",
+_CORE_CANDIDATES = (
+    _THIS_DIR.parent.parent / "tfa_core" / "v0.1.0-build.0001",
+    _THIS_DIR.parent.parent.parent / "tfa_core" / "v0.1.0-build.0001",
 )
-for _candidate in (_THIS_DIR, *_PACKAGE_VALIDATOR_CANDIDATES):
+for _candidate in (_THIS_DIR, *_CORE_CANDIDATES):
     if _candidate.exists():
-        candidate_text = str(_candidate)
-        if candidate_text not in sys.path:
-            sys.path.insert(0, candidate_text)
+        _text = str(_candidate)
+        if _text not in sys.path:
+            sys.path.insert(0, _text)
 
-import tfa_acoustic_validator as acoustic_validator
+import tfa_core as core  # noqa: E402
 
 
 ArrayLike = Sequence[float] | np.ndarray
-PotentialRoute = acoustic_validator.PotentialRoute
-def _unified_settings_path() -> Path:
-    """Resolve the single package-level ``tfa-environment-settings.json``.
+PotentialRoute = core.PotentialRoute
+DEFAULT_ENVIRONMENT_SETTINGS = core.DEFAULT_ENVIRONMENT_SETTINGS
 
-    TFA design rule: no script carries a local settings file. Every script reads
-    the one unified file at the TFA-package root, located by walking up from this
-    file until it is found.
-    """
-
-    here = Path(__file__).resolve()
-    for parent in here.parents:
-        candidate = parent / "tfa-environment-settings.json"
-        if candidate.exists():
-            return candidate
-    return here.parents[3] / "tfa-environment-settings.json"
-
-
-DEFAULT_ENVIRONMENT_SETTINGS = _unified_settings_path()
-
-TFA_PROJECT_RELEASE = "0.0.2"
+TFA_PROJECT_RELEASE = "0.0.4"
 SCRIPT_NAME = "tfa_physics_guard_validator"
-SCRIPT_VERSION = "0.1.4"
+SCRIPT_VERSION = "0.1.5"
 SCRIPT_BUILD = "0001"
 SCRIPT_API_VERSION = "0.1"
 SETTINGS_SCHEMA_VERSION = "0.1"
@@ -85,8 +73,8 @@ def script_identity() -> Mapping[str, str]:
 def physics_guard_settings_from_settings(settings: Mapping[str, object]) -> Mapping[str, float]:
     """Return physics guard thresholds from the environment settings JSON."""
 
-    user = acoustic_validator.user_adjustable_settings(settings)
-    section = acoustic_validator._require_mapping(user, "physics_guards")
+    user = core.user_adjustable_settings(settings)
+    section = core._require_mapping(user, "physics_guards")
     return {
         "canonical_w_floor": float(section["canonical_w_floor"]),
         "canonical_tolerance": float(section["canonical_tolerance"]),
@@ -99,20 +87,22 @@ def physics_guard_settings_from_settings(settings: Mapping[str, object]) -> Mapp
 
 
 def load_guard_environment(settings_path: str | Path | None = None) -> Mapping[str, object]:
-    """Load shared validator environment plus physics guard thresholds."""
+    """Load the shared environment (via tfa_core) plus guard thresholds."""
 
     resolved = DEFAULT_ENVIRONMENT_SETTINGS if settings_path is None else Path(settings_path)
-    settings = acoustic_validator.load_environment_settings(resolved)
-    validator_env = acoustic_validator.runtime_environment_from_settings(resolved)
+    settings = core.load_environment_settings(resolved)
     return {
-        **validator_env,
+        "settings": settings,
+        "cosmology": core.cosmology_from_settings(settings),
+        "integration_config": core.integration_config_from_settings(settings),
+        "execution_settings": core.execution_settings_from_settings(settings, resolved),
         "settings_path": resolved,
         "physics_guard_settings": physics_guard_settings_from_settings(settings),
     }
 
 
 def _as_float_array(name: str, values: ArrayLike) -> np.ndarray:
-    """Convert input to a finite float array."""
+    """Convert input to a finite one-dimensional float array."""
 
     arr = np.asarray(values, dtype=float)
     if arr.ndim != 1:
@@ -127,7 +117,7 @@ def canonical_ok_from_w(
     w_floor: float = -1.0,
     tolerance: float = 1e-8,
 ) -> Mapping[str, object]:
-    """Check the FEU canonical guard: all ``w_phi >= w_floor - tolerance``."""
+    """Canonical guard: all ``w_phi >= w_floor - tolerance``."""
 
     w = _as_float_array("w_phi", w_phi)
     minimum = float(np.min(w)) if len(w) else float("nan")
@@ -162,7 +152,7 @@ def canonical_thawing_ok_from_history(
     late_z_max: float = 5.0,
     tolerance: float = 1e-8,
 ) -> Mapping[str, object]:
-    """Check FEU thawing monotonicity on the late-time ``z <= late_z_max`` slice."""
+    """Thawing monotonicity on the late-time ``z <= late_z_max`` slice."""
 
     z_arr = _as_float_array("z", z)
     w = _as_float_array("w_phi", w_phi)
@@ -190,7 +180,7 @@ def bbn_ok_from_omega_phi(
     Omega_phi_bbn: float,
     bound: float = 0.045,
 ) -> Mapping[str, object]:
-    """Check FEU BBN guard: ``Omega_phi_BBN < bound``."""
+    """BBN guard: ``Omega_phi_BBN < bound``."""
 
     value = float(Omega_phi_bbn)
     if not np.isfinite(value):
@@ -204,18 +194,18 @@ def bbn_ok_from_omega_phi(
 
 def _evaluate_w_omega_at_z(
     route: PotentialRoute,
-    cosmology: acoustic_validator.CosmologyContext,
+    cosmology: core.CosmologyContext,
     sol: object,
     z_grid: ArrayLike,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Evaluate z, w_phi, and Omega_phi on a redshift grid."""
+    """Evaluate z, w_phi, and Omega_phi on a redshift grid from the dense ODE."""
 
     z = _as_float_array("z_grid", z_grid)
     if np.any(z < 0.0):
         raise ValueError("z_grid must be non-negative")
     N = -np.log1p(z)
     y = sol.sol(N)
-    phi, phi_N, H2, _raw_E = acoustic_validator._eval_route_state(route, cosmology, N, y)
+    phi, phi_N, H2, _raw_E = core.eval_route_state(route, cosmology, N, y)
     V = np.asarray(route.V(phi), dtype=float)
     kinetic = 0.5 * H2 * phi_N**2
     w_phi = (kinetic - V) / (kinetic + V)
@@ -225,7 +215,7 @@ def _evaluate_w_omega_at_z(
 
 def bbn_omega_phi_frozen(
     route: PotentialRoute,
-    cosmology: acoustic_validator.CosmologyContext,
+    cosmology: core.CosmologyContext,
     bbn_z: float,
 ) -> float:
     """Scalar density fraction at BBN, in the frozen-field limit.
@@ -239,10 +229,9 @@ def bbn_omega_phi_frozen(
         Omega_phi(z_bbn) = (K + V(phi_i)) / (3 H^2),   K = 0.5 H^2 phi_Ni^2.
 
     This is exact in the frozen regime and does NOT evaluate the dense ODE
-    solution. The previous implementation called ``sol.sol`` at ``bbn_z``
-    (default 1e9), which lies outside the integrated interval ``[0, z_ini]``
-    (default z_ini = 1e6); that extrapolation fabricated a spurious kinetic
-    term and reported an ``Omega_phi_BBN`` ~28 orders of magnitude too large.
+    solution: BBN (default z = 1e9) lies outside the integrated interval
+    ``[0, z_ini]`` (default z_ini = 1e6), so extrapolating the solver there would
+    fabricate a spurious kinetic term.
     """
 
     if bbn_z <= 0.0 or not np.isfinite(bbn_z):
@@ -269,7 +258,7 @@ def validate_physics_guards_from_history(
     Omega_phi_bbn: float | None = None,
     settings_path: str | Path | None = None,
 ) -> Mapping[str, object]:
-    """Validate guards from supplied arrays and optional BBN scalar fraction."""
+    """Validate guards from supplied arrays and an optional BBN scalar fraction."""
 
     env = load_guard_environment(settings_path)
     settings = env["physics_guard_settings"]
@@ -309,12 +298,12 @@ def validate_physics_guards_from_route(
     settings_path: str | Path | None = None,
     redshift_grid: ArrayLike | None = None,
 ) -> Mapping[str, object]:
-    """Integrate a route and validate canonical, thawing, phantom, and BBN guards."""
+    """Integrate a route (via tfa_core) and validate all four guards."""
 
     env = load_guard_environment(settings_path)
     execution = env["execution_settings"]
     settings = env["physics_guard_settings"]
-    trace = acoustic_validator.RunTrace(
+    trace = core.RunTrace(
         route_id=route.benchmark_id,
         enabled=bool(execution["trace_enabled"]),
         debug_print=bool(execution["debug_print"]),
@@ -322,34 +311,24 @@ def validate_physics_guards_from_route(
         filename_prefix=f"{execution['trace_filename_prefix']}-physics-guard-validator",
     )
     try:
-        cosmology = acoustic_validator._run_phase(trace, "environment", lambda: env["cosmology"])
-        integration_config = acoustic_validator._run_phase(
-            trace,
-            "environment",
-            lambda: env["integration_config"],
-        )
-        sol = acoustic_validator._run_phase(
-            trace,
+        cosmology = trace.run_phase("environment", lambda: env["cosmology"])
+        integration_config = trace.run_phase("environment", lambda: env["integration_config"])
+        sol = trace.run_phase(
             "ode_integration",
-            lambda: acoustic_validator.integrate_scalar_route(route, cosmology, integration_config),
+            lambda: core.integrate_scalar_route(route, cosmology, integration_config),
         )
         if redshift_grid is None:
             redshift_grid = np.exp(-sol.t) - 1.0
-        z, w_phi, _Omega_phi = acoustic_validator._run_phase(
-            trace,
+        z, w_phi, _Omega_phi = trace.run_phase(
             "guard_history",
             lambda: _evaluate_w_omega_at_z(route, cosmology, sol, redshift_grid),
         )
-        omega_bbn = acoustic_validator._run_phase(
-            trace,
+        omega_bbn = trace.run_phase(
             "bbn_guard",
             lambda: bbn_omega_phi_frozen(route, cosmology, settings["bbn_z"]),
         )
         result = validate_physics_guards_from_history(
-            z,
-            w_phi,
-            omega_bbn,
-            settings_path=env["settings_path"],
+            z, w_phi, omega_bbn, settings_path=env["settings_path"]
         )
         trace.close("PASS", "TFA physics guard validator completed")
         payload = dict(result["payload"])
@@ -358,7 +337,7 @@ def validate_physics_guards_from_route(
         payload["trace_path"] = str(trace.trace_path) if trace.trace_path is not None else None
         return {"ok": True, "payload": payload}
     except BaseException as exc:
-        err = exc if isinstance(exc, acoustic_validator.TFAError) else acoustic_validator._phase_error("unknown", exc)
+        err = exc if isinstance(exc, core.TFAError) else core.phase_error("unknown", exc)
         if trace.trace_path is not None:
             err.trace_path = str(trace.trace_path)
         trace.close("ERROR", err.message)
@@ -372,9 +351,11 @@ def validate_physics_guards_from_route_safe(
 ) -> Mapping[str, object]:
     """Safe wrapper returning structured error dictionaries."""
 
+    import traceback
+
     try:
         return validate_physics_guards_from_route(route, settings_path, redshift_grid)
-    except acoustic_validator.TFAError as exc:
+    except core.TFAError as exc:
         return {
             "ok": False,
             "error": exc.to_dict(),
@@ -382,7 +363,7 @@ def validate_physics_guards_from_route_safe(
             "script": script_identity(),
         }
     except BaseException as exc:
-        err = acoustic_validator._phase_error("unknown", exc)
+        err = core.phase_error("unknown", exc)
         return {
             "ok": False,
             "error": err.to_dict(),
@@ -392,13 +373,12 @@ def validate_physics_guards_from_route_safe(
 
 
 # ===========================================================================
-# File-based run-folder layer (added in 0.1.3)
+# File-based run-folder layer
 #
-# The hub invokes this AFTER the engine (tfa_acoustic_validator) has written
-# trajectory.csv. The guard depends only on the engine's output + the contract;
-# it does NOT depend on the normalized-history generator, so it runs before it.
-# It reads z/w_phi from trajectory.csv, rebuilds the potential only to evaluate
-# the frozen-field BBN density, runs the four guard checks, writes its own
+# The hub invokes this AFTER the engine has written trajectory.csv. The guard
+# depends only on the engine's output plus the contract; it reads z/w_phi from
+# trajectory.csv, rebuilds the potential (via tfa_core) only to evaluate the
+# frozen-field BBN density, runs the four guard checks, writes its own
 # physics_guards.csv, enriches run_results_summary.json under
 # results["physics_guard_validator"], and returns (Code, Desc).
 # ===========================================================================
@@ -407,23 +387,6 @@ SUMMARY_FILENAME = "run_results_summary.json"
 FROZEN_SETTINGS_FILENAME = "environment-settings.json"
 TRAJECTORY_FILENAME = "trajectory.csv"
 GUARDS_CSV_FILENAME = "physics_guards.csv"
-
-
-def _read_json(path: str | Path) -> dict:
-    with Path(path).open("r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def _atomic_write_json(path: str | Path, obj: object) -> None:
-    """Write JSON atomically (temp + fsync + rename) to avoid the hold-release gap."""
-
-    path = Path(path)
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    with tmp.open("w", encoding="utf-8") as f:
-        json.dump(obj, f, indent=2, sort_keys=False)
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(tmp, path)
 
 
 def _read_trajectory_zw(path: str | Path) -> tuple[np.ndarray, np.ndarray]:
@@ -509,7 +472,7 @@ def run_physics_guard_validator(run_folder: str | Path) -> tuple[str, str]:
     ``run_results_summary.json``, computes the frozen-field BBN density, runs the
     canonical / thawing / phantom / BBN guards, writes ``physics_guards.csv``,
     and enriches the summary under ``results["physics_guard_validator"]``.
-    Depends only on the engine output, never on the normalized history.
+    Depends only on the engine output and tfa_core, never on the engine module.
     """
 
     try:
@@ -524,27 +487,27 @@ def run_physics_guard_validator(run_folder: str | Path) -> tuple[str, str]:
         if not traj_path.exists():
             return ("Error", f"{TRAJECTORY_FILENAME} not found; run acoustic_validator first")
 
-        summary = _read_json(summary_path)
+        summary = core.read_json(summary_path)
         contract = summary.get("contract")
         if not isinstance(contract, Mapping):
             return ("Error", "run_results_summary.json has no contract section")
 
-        settings = acoustic_validator.load_environment_settings(settings_path)
+        settings = core.load_environment_settings(settings_path)
         guard_settings = physics_guard_settings_from_settings(settings)
-        cosmology = acoustic_validator.cosmology_from_settings(settings)
+        cosmology = core.cosmology_from_settings(settings)
 
         # z, w_phi come straight off the engine's trajectory (no re-integration).
         z, w_phi = _read_trajectory_zw(traj_path)
 
         # Frozen-field BBN density needs V(phi_i): rebuild from frozen settings.
-        V, dV_dphi = acoustic_validator.build_potential_from_settings(settings, cosmology)
-        potential_spec = acoustic_validator.potential_from_settings(settings)
+        V, dV_dphi = core.build_potential_from_settings(settings, cosmology)
+        potential_spec = core.potential_from_settings(settings)
         benchmark_id = str(
             potential_spec.get("benchmark_id")
             or contract.get("benchmark_id")
             or "unnamed"
         )
-        route = acoustic_validator.PotentialRoute(
+        route = core.PotentialRoute(
             benchmark_id=benchmark_id,
             V=V,
             dV_dphi=dV_dphi,
@@ -568,7 +531,7 @@ def run_physics_guard_validator(run_folder: str | Path) -> tuple[str, str]:
             run_folder / GUARDS_CSV_FILENAME, payload, guard_settings, route.benchmark_id, overall_pass
         )
 
-        summary = _read_json(summary_path)
+        summary = core.read_json(summary_path)
         results = summary.setdefault("results", {})
         results["physics_guard_validator"] = {
             "status": "OK",
@@ -590,11 +553,11 @@ def run_physics_guard_validator(run_folder: str | Path) -> tuple[str, str]:
             "guards_csv": GUARDS_CSV_FILENAME,
             "guards_csv_rows": rows,
         }
-        _atomic_write_json(summary_path, summary)
+        core.atomic_write_json(summary_path, summary)
 
         return ("OK", f"physics_guard_validator complete: overall_pass={overall_pass}")
 
-    except acoustic_validator.TFAError as exc:
+    except core.TFAError as exc:
         return ("Error", f"{exc.code}: {exc.message}")
     except BaseException as exc:
         return ("Error", f"{type(exc).__name__}: {exc}")
@@ -607,4 +570,3 @@ if __name__ == "__main__":
     _code, _desc = run_physics_guard_validator(_run_folder)
     print(json.dumps({"code": _code, "desc": _desc}))
     sys.exit(0 if _code == "OK" else 1)
-

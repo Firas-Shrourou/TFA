@@ -1,262 +1,336 @@
-﻿{
-    "user_adjustable":  {
-                            "potential":  {
-                                              "benchmark_id":  "WLI_1",
-                                              "V_of_phi":  "3 * Omega_DE * (phi_inf / phi) ** alpha",
-                                              "dV_dphi":  "-alpha * 3 * Omega_DE * (phi_inf / phi) ** alpha / phi",
-                                              "parameters":  {
-                                                                 "alpha":  1,
-                                                                 "phi_inf":  1.3
-                                                             },
-                                              "initial_phi":  1.3,
-                                              "initial_phi_N":  0,
-                                              "user_remarks":  ""
-                                          },
-                            "cosmology":  {
-                                              "Omega_m0":  0.3152,
-                                              "Omega_r0":  0.0000918,
-                                              "Omega_DE":  null,
-                                              "H0_ref_kms":  67.36,
-                                              "c_kms":  299792.458
-                                          },
-                            "acoustic_priors":  {
-                                                    "OBH2":  0.02237,
-                                                    "OMH2":  0.143,
-                                                    "T0_K":  2.7255,
-                                                    "NEFF":  3.046,
-                                                    "OGH2":  0.000024728,
-                                                    "theta_star_target":  0.010411,
-                                                    "z_integral_max":  100000000.0,
-                                                    "theta_tolerance":  1E-10
-                                                },
-                            "planck_h0_bands":  {
-                                                    "strict":  [
-                                                                   66.82,
-                                                                   67.9
-                                                               ],
-                                                    "loose_2s":  [
-                                                                     66.28,
-                                                                     68.44
-                                                                 ],
-                                                    "loose_3s":  [
-                                                                     65.74,
-                                                                     68.98
-                                                                 ]
-                                                },
-                            "integration":  {
-                                                "z_ini":  1000000.0,
-                                                "z_final":  0.0,
-                                                "method":  "DOP853",
-                                                "rtol":  1E-10,
-                                                "atol":  1E-12,
-                                                "max_step":  0.01,
-                                                "dense_output":  true
-                                            },
-                            "export":  {
-                                           "shape_tolerance":  1E-10,
-                                           "normalization_tolerance":  1E-10,
-                                           "low_z_step":  0.05,
-                                           "low_z_max":  2.5,
-                                           "add_prefix":  true,
-                                           "prefix":  "tfa",
-                                           "add_timestamp":  true,
-                                           "timestamp_format":  "%Y%m%d_%H%M%S",
-                                           "add_guid":  false
-                                       },
-                            "export_gate":  {
-                                                "enabled":  true,
-                                                "accepted_bands":  [
-                                                                       "STRICT",
-                                                                       "LOOSE_2S",
-                                                                       "LOOSE_3S"
-                                                                   ],
-                                                "on_rejected":  "failure_report_only"
-                                            },
-                            "physics_guards":  {
-                                                   "canonical_w_floor":  -1.0,
-                                                   "canonical_tolerance":  1E-08,
-                                                   "thawing_late_z_max":  5.0,
-                                                   "thawing_monotonic_tolerance":  1E-08,
-                                                   "phantom_crossing_tolerance":  1E-08,
-                                                   "bbn_z":  1000000000.0,
-                                                   "bbn_omega_phi_bound":  0.045
-                                               },
-                            "execution":  {
-                                              "debug_print":  false,
-                                              "trace_enabled":  true,
-                                              "trace_dir":  "../tfa-run-logs",
-                                              "trace_filename_prefix":  "tfa-run",
-                                              "safe_runner_returns_error_object":  true
-                                          },
-                            "bao_validator":  {
-                                                  "enabled":  true
-                                              },
-                            "rsd_validator":  {
-                                                  "enabled":  true
-                                              }
-                        },
-    "read_only_hardcoded_defaults":  {
-                                         "potential":  {
-                                                           "_comment":  "Example only â€” documents the expected fields. Runtime code reads user_adjustable.potential.",
-                                                           "benchmark_id":  "WLI_3",
-                                                           "V_of_phi":  "3 * Omega_DE * (phi_inf / phi) ** alpha",
-                                                           "dV_dphi":  "-alpha * 3 * Omega_DE * (phi_inf / phi) ** alpha / phi",
-                                                           "parameters":  {
-                                                                              "alpha":  2.0,
-                                                                              "phi_inf":  1.30
-                                                                          },
-                                                           "initial_phi":  1.30,
-                                                           "initial_phi_N":  0.0,
-                                                           "user_remarks":  ""
-                                                       },
-                                         "cosmology":  {
-                                                           "Omega_m0":  0.3152,
-                                                           "Omega_r0":  0.0000918,
-                                                           "Omega_DE":  null,
-                                                           "H0_ref_kms":  67.36,
-                                                           "c_kms":  299792.458,
-                                                           "flatness_rule":  "If Omega_DE is null, use 1 - Omega_m0 - Omega_r0."
-                                                       },
-                                         "acoustic_priors":  {
-                                                                 "OBH2":  0.02237,
-                                                                 "OMH2":  0.143,
-                                                                 "T0_K":  2.7255,
-                                                                 "NEFF":  3.046,
-                                                                 "OGH2":  0.000024728,
-                                                                 "theta_star_target":  0.010411,
-                                                                 "z_integral_max":  100000000.0,
-                                                                 "theta_tolerance":  1E-10
-                                                             },
-                                         "planck_h0_bands":  {
-                                                                 "strict":  [
-                                                                                66.82,
-                                                                                67.9
-                                                                            ],
-                                                                 "loose_2s":  [
-                                                                                  66.28,
-                                                                                  68.44
-                                                                              ],
-                                                                 "loose_3s":  [
-                                                                                  65.74,
-                                                                                  68.98
-                                                                              ]
-                                                             },
-                                         "integration":  {
-                                                             "z_ini":  1000000.0,
-                                                             "z_final":  0.0,
-                                                             "method":  "DOP853",
-                                                             "rtol":  1E-10,
-                                                             "atol":  1E-12,
-                                                             "max_step":  0.01,
-                                                             "dense_output":  true
-                                                         },
-                                         "export":  {
-                                                        "shape_tolerance":  1E-10,
-                                                        "normalization_tolerance":  1E-10,
-                                                        "low_z_step":  0.05,
-                                                        "low_z_max":  2.5,
-                                                        "add_prefix":  true,
-                                                        "prefix":  "tfa",
-                                                        "add_timestamp":  true,
-                                                        "timestamp_format":  "%Y%m%d_%H%M%S",
-                                                        "add_guid":  false
-                                                    },
-                                         "export_gate":  {
-                                                             "enabled":  true,
-                                                             "accepted_bands":  [
-                                                                                    "STRICT",
-                                                                                    "LOOSE_2S",
-                                                                                    "LOOSE_3S"
-                                                                                ],
-                                                             "on_rejected":  "failure_report_only"
-                                                         },
-                                         "physics_guards":  {
-                                                                "canonical_w_floor":  -1.0,
-                                                                "canonical_tolerance":  1E-08,
-                                                                "thawing_late_z_max":  5.0,
-                                                                "thawing_monotonic_tolerance":  1E-08,
-                                                                "phantom_crossing_tolerance":  1E-08,
-                                                                "bbn_z":  1000000000.0,
-                                                                "bbn_omega_phi_bound":  0.045
-                                                            },
-                                         "execution":  {
-                                                           "debug_print":  false,
-                                                           "trace_enabled":  true,
-                                                           "trace_dir":  "../tfa-run-logs",
-                                                           "trace_filename_prefix":  "tfa-run",
-                                                           "safe_runner_returns_error_object":  true
-                                                       },
-                                         "bao_validator":  {
-                                                               "dataset_label":  "DESI_DR2_ALL_GCcomb",
-                                                               "datum_count":  13,
-                                                               "z_range":  [
-                                                                               0.295,
-                                                                               2.33
-                                                                           ],
-                                                               "observables":  [
-                                                                                   "DV_over_rs",
-                                                                                   "DM_over_rs",
-                                                                                   "DH_over_rs"
-                                                                               ],
-                                                               "rd_source":  "acoustic_anchor.r_s_Mpc",
-                                                               "geometry":  "flat (Omega_K = 0 by TFA construction)",
-                                                               "interpolation_method":  "PchipInterpolator",
-                                                               "sigma_thresholds":  [
-                                                                                        1.0,
-                                                                                        2.0,
-                                                                                        3.0
-                                                                                    ]
-                                                           },
-                                         "rsd_validator":  {
-                                                               "dataset_label":  "fsigma8_gold_compilation",
-                                                               "datum_count":  18,
-                                                               "z_range":  [
-                                                                               0.02,
-                                                                               1.48
-                                                                           ],
-                                                               "observable":  "fsigma8",
-                                                               "sigma8_reference":  0.8111,
-                                                               "sigma8_reference_label":  "fixed_external_Planck2018_base_LCDM_sigma8_anchor",
-                                                               "growth_z_start":  10.0,
-                                                               "interpolation_method":  "PchipInterpolator",
-                                                               "ode_solver":  "DOP853",
-                                                               "covariance":  "diagonal (independent surveys)",
-                                                               "sigma_thresholds":  [
-                                                                                        1.0,
-                                                                                        2.0,
-                                                                                        3.0
-                                                                                    ]
-                                                           }
-                                     },
-    "schema":  {
-                   "name":  "tfa-environment-settings",
-                   "settings_file_version":  "1.0.2",
-                   "tfa_package_release":  "0.0.4",
-                   "compatible_scripts":  [
-                                              {
-                                                  "script_name":  "tfa_common",
-                                                  "script_version":  "0.9.1"
-                                              },
-                                              {
-                                                  "script_name":  "tfa_acoustic_validator",
-                                                  "script_version":  "0.1.5"
-                                              },
-                                              {
-                                                  "script_name":  "tfa_physics_guard_validator",
-                                                  "script_version":  "0.1.4"
-                                              },
-                                              {
-                                                  "script_name":  "tfa_plot_exporter",
-                                                  "script_version":  "0.1.1"
-                                              },
-                                              {
-                                                  "script_name":  "tfa_bao_validator",
-                                                  "script_version":  "0.1.1"
-                                              },
-                                              {
-                                                  "script_name":  "tfa_rsd_validator",
-                                                  "script_version":  "0.1.0"
-                                              }
-                                          ]
-               }
+{
+  "user_adjustable": {
+    "potential": {
+      "benchmark_id": "WLI_1",
+      "V_of_phi": "3 * Omega_DE * (phi_inf / phi) ** alpha",
+      "dV_dphi": "-alpha * 3 * Omega_DE * (phi_inf / phi) ** alpha / phi",
+      "parameters": {
+        "alpha": 1,
+        "phi_inf": 1.3
+      },
+      "initial_phi": 1.3,
+      "initial_phi_N": 0,
+      "user_remarks": ""
+    },
+    "cosmology": {
+      "Omega_m0": 0.3152,
+      "Omega_r0": 9.18e-05,
+      "Omega_DE": null,
+      "H0_ref_kms": 67.36,
+      "c_kms": 299792.458
+    },
+    "acoustic_priors": {
+      "OBH2": 0.02237,
+      "OMH2": 0.143,
+      "T0_K": 2.7255,
+      "NEFF": 3.046,
+      "OGH2": 2.4728e-05,
+      "theta_star_target": 0.010411,
+      "z_integral_max": 100000000.0,
+      "theta_tolerance": 1e-10
+    },
+    "h0_bands": {
+      "band_source": "DESI_DR2_w0waCDM_DESI+CMB+DESY5: H0=66.74 +/- 0.56 (mean +/- 1/2/3 sigma)",
+      "strict": [
+        66.18,
+        67.3
+      ],
+      "loose_2s": [
+        65.62,
+        67.86
+      ],
+      "loose_3s": [
+        65.06,
+        68.42
+      ]
+    },
+    "integration": {
+      "z_ini": 1000000.0,
+      "z_final": 0.0,
+      "method": "DOP853",
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_step": 0.01,
+      "dense_output": true
+    },
+    "export": {
+      "shape_tolerance": 1e-10,
+      "normalization_tolerance": 1e-10,
+      "low_z_step": 0.05,
+      "low_z_max": 2.5,
+      "add_prefix": true,
+      "prefix": "tfa",
+      "add_timestamp": true,
+      "timestamp_format": "%Y%m%d_%H%M%S",
+      "add_guid": false
+    },
+    "export_gate": {
+      "enabled": true,
+      "accepted_bands": [
+        "STRICT",
+        "LOOSE_2S",
+        "LOOSE_3S"
+      ],
+      "on_rejected": "failure_report_only"
+    },
+    "physics_guards": {
+      "canonical_w_floor": -1.0,
+      "canonical_tolerance": 1e-08,
+      "thawing_late_z_max": 5.0,
+      "thawing_monotonic_tolerance": 1e-08,
+      "phantom_crossing_tolerance": 1e-08,
+      "bbn_z": 1000000000.0,
+      "bbn_omega_phi_bound": 0.045
+    },
+    "execution": {
+      "debug_print": false,
+      "trace_enabled": true,
+      "trace_dir": "../tfa-run-logs",
+      "trace_filename_prefix": "tfa-run",
+      "safe_runner_returns_error_object": true
+    },
+    "bao_validator": {
+      "enabled": true
+    },
+    "rsd_validator": {
+      "enabled": true
+    },
+    "density_validator": {
+      "enabled": true,
+      "fde_z_max": 3.0,
+      "fde_marker_z": [
+        0.5,
+        1.0,
+        2.0
+      ],
+      "thaw_threshold": 0.01
+    },
+    "cpl_fidelity_validator": {
+      "enabled": true,
+      "fit_z_max": 3.0,
+      "dw_faithful": 0.01,
+      "dw_marginal": 0.05,
+      "ddm_faithful_pct": 0.1,
+      "ddm_marginal_pct": 0.5
+    },
+    "desi_reference": {
+      "_source": "DESI DR2 w0waCDM, DESI+CMB+DESY5 (arXiv:2503.14738)",
+      "Omega_m": 0.3191,
+      "Omega_m_sigma": 0.0056,
+      "H0_kms": 66.74,
+      "H0_sigma": 0.56,
+      "w0": -0.752,
+      "w0_sigma": 0.057,
+      "wa": -0.86,
+      "wa_sigma": 0.23
+    }
+  },
+  "read_only_hardcoded_defaults": {
+    "potential": {
+      "_comment": "Example only \u00e2\u20ac\u201d documents the expected fields. Runtime code reads user_adjustable.potential.",
+      "benchmark_id": "WLI_3",
+      "V_of_phi": "3 * Omega_DE * (phi_inf / phi) ** alpha",
+      "dV_dphi": "-alpha * 3 * Omega_DE * (phi_inf / phi) ** alpha / phi",
+      "parameters": {
+        "alpha": 2.0,
+        "phi_inf": 1.3
+      },
+      "initial_phi": 1.3,
+      "initial_phi_N": 0.0,
+      "user_remarks": ""
+    },
+    "cosmology": {
+      "Omega_m0": 0.3152,
+      "Omega_r0": 9.18e-05,
+      "Omega_DE": null,
+      "H0_ref_kms": 67.36,
+      "c_kms": 299792.458,
+      "flatness_rule": "If Omega_DE is null, use 1 - Omega_m0 - Omega_r0."
+    },
+    "acoustic_priors": {
+      "OBH2": 0.02237,
+      "OMH2": 0.143,
+      "T0_K": 2.7255,
+      "NEFF": 3.046,
+      "OGH2": 2.4728e-05,
+      "theta_star_target": 0.010411,
+      "z_integral_max": 100000000.0,
+      "theta_tolerance": 1e-10
+    },
+    "h0_bands": {
+      "band_source": "DESI_DR2_w0waCDM_DESI+CMB+DESY5: H0=66.74 +/- 0.56 (mean +/- 1/2/3 sigma)",
+      "strict": [
+        66.18,
+        67.3
+      ],
+      "loose_2s": [
+        65.62,
+        67.86
+      ],
+      "loose_3s": [
+        65.06,
+        68.42
+      ]
+    },
+    "integration": {
+      "z_ini": 1000000.0,
+      "z_final": 0.0,
+      "method": "DOP853",
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_step": 0.01,
+      "dense_output": true
+    },
+    "export": {
+      "shape_tolerance": 1e-10,
+      "normalization_tolerance": 1e-10,
+      "low_z_step": 0.05,
+      "low_z_max": 2.5,
+      "add_prefix": true,
+      "prefix": "tfa",
+      "add_timestamp": true,
+      "timestamp_format": "%Y%m%d_%H%M%S",
+      "add_guid": false
+    },
+    "export_gate": {
+      "enabled": true,
+      "accepted_bands": [
+        "STRICT",
+        "LOOSE_2S",
+        "LOOSE_3S"
+      ],
+      "on_rejected": "failure_report_only"
+    },
+    "physics_guards": {
+      "canonical_w_floor": -1.0,
+      "canonical_tolerance": 1e-08,
+      "thawing_late_z_max": 5.0,
+      "thawing_monotonic_tolerance": 1e-08,
+      "phantom_crossing_tolerance": 1e-08,
+      "bbn_z": 1000000000.0,
+      "bbn_omega_phi_bound": 0.045
+    },
+    "execution": {
+      "debug_print": false,
+      "trace_enabled": true,
+      "trace_dir": "../tfa-run-logs",
+      "trace_filename_prefix": "tfa-run",
+      "safe_runner_returns_error_object": true
+    },
+    "bao_validator": {
+      "dataset_label": "DESI_DR2_ALL_GCcomb",
+      "datum_count": 13,
+      "z_range": [
+        0.295,
+        2.33
+      ],
+      "observables": [
+        "DV_over_rs",
+        "DM_over_rs",
+        "DH_over_rs"
+      ],
+      "rd_source": "acoustic_anchor.r_s_Mpc",
+      "geometry": "flat (Omega_K = 0 by TFA construction)",
+      "interpolation_method": "PchipInterpolator",
+      "sigma_thresholds": [
+        1.0,
+        2.0,
+        3.0
+      ]
+    },
+    "rsd_validator": {
+      "dataset_label": "fsigma8_gold_compilation",
+      "datum_count": 18,
+      "z_range": [
+        0.02,
+        1.48
+      ],
+      "observable": "fsigma8",
+      "sigma8_reference": 0.8111,
+      "sigma8_reference_label": "fixed_external_Planck2018_base_LCDM_sigma8_anchor",
+      "growth_z_start": 10.0,
+      "interpolation_method": "PchipInterpolator",
+      "ode_solver": "DOP853",
+      "covariance": "diagonal (independent surveys)",
+      "sigma_thresholds": [
+        1.0,
+        2.0,
+        3.0
+      ]
+    },
+    "density_validator": {
+      "_comment": "CPL-free density-sector diagnostics. Non-gated (runs for EXCLUDED routes). The only pull is H0_X vs desi_reference; Omega_m is quoted reference-only (a pull would double-count H0).",
+      "enabled": true,
+      "fde_z_max": 3.0,
+      "fde_marker_z": [
+        0.5,
+        1.0,
+        2.0
+      ],
+      "thaw_threshold": 0.01
+    },
+    "cpl_fidelity_validator": {
+      "_comment": "CPL audited, never adopted. Best-fit CPL error report + phantom-crossing audit. Non-gated. No TFA component consumes the fitted (w0, wa).",
+      "enabled": true,
+      "fit_z_max": 3.0,
+      "dw_faithful": 0.01,
+      "dw_marginal": 0.05,
+      "ddm_faithful_pct": 0.1,
+      "ddm_marginal_pct": 0.5
+    },
+    "desi_reference": {
+      "_source": "DESI DR2 w0waCDM, DESI+CMB+DESY5 (arXiv:2503.14738)",
+      "Omega_m": 0.3191,
+      "Omega_m_sigma": 0.0056,
+      "H0_kms": 66.74,
+      "H0_sigma": 0.56,
+      "w0": -0.752,
+      "w0_sigma": 0.057,
+      "wa": -0.86,
+      "wa_sigma": 0.23
+    }
+  },
+  "schema": {
+    "name": "tfa-environment-settings",
+    "settings_file_version": "1.2.0",
+    "tfa_package_release": "0.0.5",
+    "compatible_scripts": [
+      {
+        "script_name": "tfa_common",
+        "script_version": "0.9.3"
+      },
+      {
+        "script_name": "tfa_core",
+        "script_version": "0.1.0"
+      },
+      {
+        "script_name": "tfa_acoustic_validator",
+        "script_version": "0.1.6"
+      },
+      {
+        "script_name": "tfa_physics_guard_validator",
+        "script_version": "0.1.5"
+      },
+      {
+        "script_name": "tfa_plot_exporter",
+        "script_version": "0.1.1"
+      },
+      {
+        "script_name": "tfa_bao_validator",
+        "script_version": "0.1.1"
+      },
+      {
+        "script_name": "tfa_rsd_validator",
+        "script_version": "0.1.0"
+      },
+      {
+        "script_name": "tfa_density_validator",
+        "script_version": "0.1.0"
+      },
+      {
+        "script_name": "tfa_cpl_fidelity_validator",
+        "script_version": "0.1.0"
+      }
+    ]
+  }
 }

@@ -29,18 +29,19 @@
       "z_integral_max": 100000000.0,
       "theta_tolerance": 1e-10
     },
-    "planck_h0_bands": {
+    "h0_bands": {
+      "band_source": "DESI_DR2_w0waCDM_DESI+CMB+DESY5: H0=66.74 +/- 0.56 (mean +/- 1/2/3 sigma)",
       "strict": [
-        66.82,
-        67.9
+        66.18,
+        67.3
       ],
       "loose_2s": [
-        66.28,
-        68.44
+        65.62,
+        67.86
       ],
       "loose_3s": [
-        65.74,
-        68.98
+        65.06,
+        68.42
       ]
     },
     "integration": {
@@ -93,6 +94,35 @@
     },
     "rsd_validator": {
       "enabled": true
+    },
+    "density_validator": {
+      "enabled": true,
+      "fde_z_max": 3.0,
+      "fde_marker_z": [
+        0.5,
+        1.0,
+        2.0
+      ],
+      "thaw_threshold": 0.01
+    },
+    "cpl_fidelity_validator": {
+      "enabled": true,
+      "fit_z_max": 3.0,
+      "dw_faithful": 0.01,
+      "dw_marginal": 0.05,
+      "ddm_faithful_pct": 0.1,
+      "ddm_marginal_pct": 0.5
+    },
+    "desi_reference": {
+      "_source": "DESI DR2 w0waCDM, DESI+CMB+DESY5 (arXiv:2503.14738)",
+      "Omega_m": 0.3191,
+      "Omega_m_sigma": 0.0056,
+      "H0_kms": 66.74,
+      "H0_sigma": 0.56,
+      "w0": -0.752,
+      "w0_sigma": 0.057,
+      "wa": -0.86,
+      "wa_sigma": 0.23
     }
   },
   "read_only_hardcoded_defaults": {
@@ -127,18 +157,19 @@
       "z_integral_max": 100000000.0,
       "theta_tolerance": 1e-10
     },
-    "planck_h0_bands": {
+    "h0_bands": {
+      "band_source": "DESI_DR2_w0waCDM_DESI+CMB+DESY5: H0=66.74 +/- 0.56 (mean +/- 1/2/3 sigma)",
       "strict": [
-        66.82,
-        67.9
+        66.18,
+        67.3
       ],
       "loose_2s": [
-        66.28,
-        68.44
+        65.62,
+        67.86
       ],
       "loose_3s": [
-        65.74,
-        68.98
+        65.06,
+        68.42
       ]
     },
     "integration": {
@@ -226,24 +257,59 @@
         2.0,
         3.0
       ]
+    },
+    "density_validator": {
+      "_comment": "CPL-free density-sector diagnostics. Non-gated (runs for EXCLUDED routes). The only pull is H0_X vs desi_reference; Omega_m is quoted reference-only (a pull would double-count H0).",
+      "enabled": true,
+      "fde_z_max": 3.0,
+      "fde_marker_z": [
+        0.5,
+        1.0,
+        2.0
+      ],
+      "thaw_threshold": 0.01
+    },
+    "cpl_fidelity_validator": {
+      "_comment": "CPL audited, never adopted. Best-fit CPL error report + phantom-crossing audit. Non-gated. No TFA component consumes the fitted (w0, wa).",
+      "enabled": true,
+      "fit_z_max": 3.0,
+      "dw_faithful": 0.01,
+      "dw_marginal": 0.05,
+      "ddm_faithful_pct": 0.1,
+      "ddm_marginal_pct": 0.5
+    },
+    "desi_reference": {
+      "_source": "DESI DR2 w0waCDM, DESI+CMB+DESY5 (arXiv:2503.14738)",
+      "Omega_m": 0.3191,
+      "Omega_m_sigma": 0.0056,
+      "H0_kms": 66.74,
+      "H0_sigma": 0.56,
+      "w0": -0.752,
+      "w0_sigma": 0.057,
+      "wa": -0.86,
+      "wa_sigma": 0.23
     }
   },
   "schema": {
     "name": "tfa-environment-settings",
-    "settings_file_version": "1.0.2",
-    "tfa_package_release": "0.0.4",
+    "settings_file_version": "1.2.0",
+    "tfa_package_release": "0.0.5",
     "compatible_scripts": [
       {
         "script_name": "tfa_common",
-        "script_version": "0.9.1"
+        "script_version": "0.9.3"
+      },
+      {
+        "script_name": "tfa_core",
+        "script_version": "0.1.0"
       },
       {
         "script_name": "tfa_acoustic_validator",
-        "script_version": "0.1.5"
+        "script_version": "0.1.6"
       },
       {
         "script_name": "tfa_physics_guard_validator",
-        "script_version": "0.1.4"
+        "script_version": "0.1.5"
       },
       {
         "script_name": "tfa_plot_exporter",
@@ -255,6 +321,14 @@
       },
       {
         "script_name": "tfa_rsd_validator",
+        "script_version": "0.1.0"
+      },
+      {
+        "script_name": "tfa_density_validator",
+        "script_version": "0.1.0"
+      },
+      {
+        "script_name": "tfa_cpl_fidelity_validator",
         "script_version": "0.1.0"
       }
     ]
