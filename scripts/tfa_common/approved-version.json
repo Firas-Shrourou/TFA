@@ -1,9 +1,9 @@
 {
   "script_name": "tfa_common",
   "approved_version": "0.9.3",
-  "approved_build": "0001",
+  "approved_build": "0003",
   "script_api_version": "0.1",
-  "tfa_project_release": "0.0.5",
-  "approved_folder": "v0.9.3-build.0001",
+  "tfa_project_release": "0.0.6",
+  "approved_folder": "v0.9.3-build.0003",
   "settings_schema_version": "0.1"
 }

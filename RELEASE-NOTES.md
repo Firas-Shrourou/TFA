@@ -10,20 +10,41 @@ version independently of the project release.
 
 | Script | Version | Build | Folder | Role |
 |---|---:|---:|---|---|
-| `tfa_common` | `0.9.3` | `0001` | `scripts/tfa_common/v0.9.3-build.0001/` | Hub - orchestrates core-based specialists (7-specialist chain) |
+| `tfa_common` | `0.9.3` | `0003` | `scripts/tfa_common/v0.9.3-build.0003/` | Hub - orchestrates core-based specialists (7-specialist chain) |
 | `tfa_core` | `0.1.0` | `0001` | `scripts/tfa_core/v0.1.0-build.0001/` | Shared scalar ODE/settings/FLRW core |
-| `tfa_acoustic_validator` | `0.1.6` | `0001` | `scripts/tfa_acoustic_validator/v0.1.6-build.0001/` | Engine - normalized Option A H0_X, history, energy budget |
+| `tfa_acoustic_validator` | `0.1.7` | `0001` | `scripts/tfa_acoustic_validator/v0.1.7-build.0001/` | Engine - normalized Option A H0_X, history, energy budget |
 | `tfa_physics_guard_validator` | `0.1.5` | `0001` | `scripts/tfa_physics_guard_validator/v0.1.5-build.0001/` | Guards - canonical, thawing, phantom, BBN via tfa_core |
 | `tfa_plot_exporter` | `0.1.1` | `0001` | `scripts/tfa_plot_exporter/v0.1.1-build.0001/` | Presentation - 6 diagnostic plots |
 | `tfa_bao_validator` | `0.1.1` | `0001` | `scripts/tfa_bao_validator/v0.1.1-build.0001/` | BAO - DESI DR2 distance closure, drag-epoch ruler |
-| `tfa_rsd_validator` | `0.1.0` | `0001` | `scripts/tfa_rsd_validator/v0.1.0-build.0001/` | RSD - f-sigma8 growth rate, 18-point gold compilation |
-| `tfa_density_validator` | `0.1.0` | `0001` | `scripts/tfa_density_validator/v0.1.0-build.0001/` | Density - CPL-free H0 pull vs DESI, energy budget, f_DE(z), thawing markers (non-gated) |
+| `tfa_rsd_validator` | `0.1.1` | `0001` | `scripts/tfa_rsd_validator/v0.1.1-build.0001/` | RSD - f-sigma8 growth rate, 18-point gold compilation |
+| `tfa_density_validator` | `0.1.1` | `0001` | `scripts/tfa_density_validator/v0.1.1-build.0001/` | Density - CPL-free H0 pull vs DESI, energy budget, f_DE(z), thawing markers (non-gated) |
 | `tfa_cpl_fidelity_validator` | `0.1.0` | `0001` | `scripts/tfa_cpl_fidelity_validator/v0.1.0-build.0001/` | CPL audit - best-fit CPL error report + phantom-crossing audit (non-gated) |
 | `tfa_combined_csv_results` | `0.1.0` | `0001` | `scripts/tfa_combined_csv_results/v0.1.0-build.0001/` | Utility - combine arbitrary run summaries into one union CSV |
 | `tfa_normalized_history_generator` | - | - | `../scripts-archive/tfa_normalized_history_generator/` | Deprecated - outside working package |
 | `tfa_csv_exporter` | - | - | `../scripts-archive/tfa_csv_exporter/` | Deprecated - outside working package |
 
 ---
+
+## Release candidate 0.0.6
+
+RSD now uses the acoustic-normalized `H_X` samples in `trajectory.csv` over
+the full growth interval. In 0.0.5 the sparse normalized export placed the
+growth start at `z=10` between its last low-redshift sample and the isolated
+acoustic endpoint. The new validator checks coverage through the derivative
+stencil, records the history source, and reports invalid or missing inputs as
+a non-fatal RSD error on accepted runs. The gated normalized history must
+contain at least two data rows, including a row at `z=0`. The hub pins RSD
+validator 0.1.1.
+
+In the eight bundled runs, RSD completed for the four accepted routes and
+skipped the four excluded routes. The 72 predictions agreed with direct scalar
+evaluation within `4.5e-8` in absolute `f_sigma8`.
+
+The route energy budget derives both matter and radiation fractions from the
+raw Friedmann solution. The density audit checks their sum with the saved
+scalar fraction before rounding. The physical matter-density residual
+compares the route value at `H0_X` with the separately supplied acoustic
+anchor. RSD describes growth at fixed reference physical matter density.
 
 ## Release 0.0.5 - 2026-06-10
 

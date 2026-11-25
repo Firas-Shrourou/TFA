@@ -154,7 +154,7 @@ Plot, BAO, and RSD modules consume values from this block.
 | `delta_X` | Audit signature: `(H0_X - H0_ref) / H0_ref` vs the reference cosmology. A different reference than the density validator's DESI pull; both are labeled. | CSV metadata, plots, route comparison. |
 | `band` | Evaluation-band classification: `STRICT`, `LOOSE_2S`, `LOOSE_3S`, or `EXCLUDED` (DESI DR2 w0waCDM bands by default). | Export gate, plots, route comparison. |
 | `H0_ref_kms` | Reference Hubble constant from settings. | Metadata and comparison. |
-| `Omega_m_X` | Matter fraction implied by the required normalization, `omega_m / (H0_X/100)^2`. | Audit and comparison. |
+| `Omega_m_X` | Matter fraction obtained from the external acoustic prior, `OMH2 / (H0_X/100)^2`. | Audit and comparison. |
 | `raw_E0` | Present-day value of the unnormalized shape before `E_X(0) = 1` normalization. | Audit. |
 | `I_X` | Dimensionless distance integral of the normalized shape to `z_star`. | Audit; `H0_X = c I_X / D_target`. |
 | `D_M_X_Mpc` | Route transverse comoving distance to the acoustic scale (equals `D_target_Mpc` by construction). | Acoustic audit. |
@@ -225,12 +225,13 @@ were added in v0.1.6. Non-gated: written for every completed run.
 | Field | Meaning |
 |---|---|
 | `Omega_phi_0` | Scalar-field density fraction at `z=0` from the ODE trajectory. |
-| `Omega_m_0` | Route matter fraction at `z=0`, computed from the route budget. |
+| `Omega_m_0` | Route matter fraction at `z=0`. From v0.1.7, `Omega_m0 / raw_E0^2` using the reference settings. |
+| `Omega_r_0` | Route radiation fraction at `z=0`, `Omega_r0 / raw_E0^2` using the reference settings. Added in v0.1.7. |
 | `z_eq_lcdm` | Reference Lambda-CDM matter/dark-energy equality redshift. |
 | `z_eq_route` | Route redshift where `Omega_phi(z) = 0.5`, if found. |
 | `delta_z_eq` | `z_eq_route - z_eq_lcdm`, if a crossing is found. |
 | `z_eq_note` | Optional note when no route equality crossing is found. |
-| `omega_m_out` | Physical matter density the finished route carries: `Omega_m_0 * (H0_X/100)^2`. |
+| `omega_m_out` | Physical matter density implied by the route, using its matter fraction before rounding and the factor `(H0_X/100)^2`. |
 | `omega_m_input_OMH2` | The input anchor density `OMH2`. |
 | `omega_m_residual_pct` | Self-consistency residual `100 * (omega_m_out / OMH2 - 1)`; grows with thawing strength. |
 
@@ -345,7 +346,9 @@ The RSD validator reads:
 
 - `environment-settings.json`
 - `run_results_summary.json`
-- `expansion_history_h0x_normalized.csv`
+- `trajectory.csv` for the growth history
+- `expansion_history_h0x_normalized.csv` for the normalization check
+- `results.acoustic_validator.export_gate.accepted`
 - `results.acoustic_validator.H0_X_kms`
 - `results.acoustic_validator.acoustic_anchor.r_s_Mpc` as an acoustic-run sentinel
 
@@ -380,6 +383,9 @@ When successful, it writes:
 | `rsd_pulls_plot` | RSD pull plot PNG filename. |
 | `rsd_growth_plot` | RSD growth-curve plot PNG filename. |
 | `growth_z_start` | Starting redshift for the growth integration. |
+| `growth_history_file` | Source for the growth history, `trajectory.csv`. |
+| `growth_history_interpolation` | History interpolation and its coordinates. |
+| `growth_history_z_required` | Upper redshift required by the finite-difference stencil. |
 | `ode_solver` | ODE method used for growth integration. |
 | `normalization_check` | Check that the normalized-history CSV satisfies its contract. |
 
@@ -399,10 +405,10 @@ this block exists for `EXCLUDED` routes too. Strictly CPL-free.
 | `H0_pull_class` | `PASS_1SIGMA` / `PASS_2SIGMA` / `PASS_3SIGMA` / `OUTSIDE_3SIGMA`. |
 | `engine_band` | The engine's band verdict, for side-by-side reading. |
 | `bands_consistent` | Cross-check that `h0_bands` equal the `desi_reference` mean +/- 1/2/3 sigma; `bands_note` explains a `false`. |
-| `energy_budget` | Echo of the engine's `energy_fractions` (marked with its source) plus a flat-closure recheck at `z=0`. |
+| `energy_budget` | Echo of the engine's `energy_fractions` (marked with its source) plus a closure check using the unrounded route matter and radiation fractions and the saved scalar fraction at `z=0`. |
 | `f_de` | `f_DE(z) = rho_phi(z)/rho_phi(0)` markers and the max deviation from the LCDM constant 1. |
 | `thawing` | `one_plus_w0`, `z_thaw`, `wa_tangent` (`-dw/da` at `a=1`; a route property, not a CPL fit). |
-| `omega_m_pull` | The literal string `not_computed_by_design (double-counts H0 pull)`. |
+| `omega_m_pull` | Records that DESI's matter fraction is quoted descriptively. Earlier versions gave a different rationale. |
 | `density_results_csv`, `density_fde_plot` | Output filenames. |
 
 ## `results.cpl_fidelity_validator`
@@ -448,7 +454,7 @@ Not every run has every successful result block.
 Common cases:
 
 - If the export gate rejects a route, normalized-history CSVs are not written.
-- When normalized histories are absent, BAO and RSD write `status: "skipped"`.
+- Rejected routes skip BAO and RSD. On accepted routes, a missing gated history is an input error for RSD.
 - When normalized histories are absent, `H_of_z` and `delta_H` plots are skipped.
 - The density and CPL-fidelity blocks are written regardless of the gate
   (non-gated modules).

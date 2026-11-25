@@ -4,7 +4,9 @@ This folder contains approved package copies of the `tfa_common` script.
 
 | Version | Build | API | TFA release | Folder | Role | Status |
 |---|---:|---:|---:|---|---|---|
-| `0.9.3` | `0001` | `0.1` | `0.0.5` | `v0.9.3-build.0001/` | hub - 7 specialists, adds density + CPL-fidelity validators | approved |
+| `0.9.3` | `0003` | `0.1` | `0.0.6` | `v0.9.3-build.0003/` | hub - pins corrected route budget and closure check | candidate |
+| `0.9.3` | `0002` | `0.1` | `0.0.6` | `v0.9.3-build.0002/` | hub - pins dense-trajectory RSD validator | earlier candidate |
+| `0.9.3` | `0001` | `0.1` | `0.0.5` | `v0.9.3-build.0001/` | hub - 7 specialists, adds density + CPL-fidelity validators | previous release |
 | `0.9.2` | `0001` | `0.1` | `0.0.4` | `v0.9.2-build.0001/` | hub - pins T004 core/acoustic/guard stack | superseded |
 | `0.9.1` | `0002` | `0.1` | `0.0.4` | `v0.9.1-build.0002/` | hub - pins T001 specialist builds | superseded |
 | `0.9.1` | `0001` | `0.1` | `0.0.3` | `v0.9.1-build.0001/` | B001 BOM resilience fix | superseded |

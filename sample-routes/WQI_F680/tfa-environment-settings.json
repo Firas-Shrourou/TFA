@@ -293,7 +293,7 @@
   "schema": {
     "name": "tfa-environment-settings",
     "settings_file_version": "1.2.0",
-    "tfa_package_release": "0.0.5",
+    "tfa_package_release": "0.0.6",
     "compatible_scripts": [
       {
         "script_name": "tfa_common",
@@ -305,7 +305,7 @@
       },
       {
         "script_name": "tfa_acoustic_validator",
-        "script_version": "0.1.6"
+        "script_version": "0.1.7"
       },
       {
         "script_name": "tfa_physics_guard_validator",
@@ -321,11 +321,11 @@
       },
       {
         "script_name": "tfa_rsd_validator",
-        "script_version": "0.1.0"
+        "script_version": "0.1.1"
       },
       {
         "script_name": "tfa_density_validator",
-        "script_version": "0.1.0"
+        "script_version": "0.1.1"
       },
       {
         "script_name": "tfa_cpl_fidelity_validator",

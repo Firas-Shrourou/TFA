@@ -65,7 +65,7 @@ and records the call log in `run_results_summary.json`.
 Current approved build:
 
 ```text
-scripts/tfa_common/v0.9.3-build.0001/
+scripts/tfa_common/v0.9.3-build.0003/
 ```
 
 Primary entry point:
@@ -95,7 +95,7 @@ distance by construction.
 Current approved build:
 
 ```text
-scripts/tfa_acoustic_validator/v0.1.6-build.0001/
+scripts/tfa_acoustic_validator/v0.1.7-build.0001/
 ```
 
 Public entry point:
@@ -218,16 +218,18 @@ export gate rejected the route. The bundled BAO data live in
 
 ## tfa_rsd_validator
 
-`tfa_rsd_validator` evaluates growth-rate diagnostics. It reads
-`expansion_history_h0x_normalized.csv`, evolves the linear growth factor
-inside the route's normalized history, computes `f_sigma8(z)`, and compares
-the route against the bundled 18-point compilation (diagonal covariance,
-`sigma8_ref = 0.8111`).
+`tfa_rsd_validator` evolves the linear growth factor using the normalized
+`H_X` in `trajectory.csv`, computes `f_sigma8(z)`, and compares the route
+against the bundled 18-point compilation (diagonal covariance,
+`sigma8_ref = 0.8111`). The gated normalized export provides a normalization
+check. The trajectory must cover the derivative stencil just above `z=10`.
+The gravitational source uses fixed physical matter density from the reference
+cosmology in the settings.
 
 Current approved build:
 
 ```text
-scripts/tfa_rsd_validator/v0.1.0-build.0001/
+scripts/tfa_rsd_validator/v0.1.1-build.0001/
 ```
 
 Public entry point:
@@ -251,11 +253,10 @@ output quantifies *how* excluded they are.
 
 The only pull it computes is `H0_X` against the `desi_reference` block of the
 input contract (DESI DR2 w0waCDM, DESI+CMB+DESY5: `66.74 +/- 0.56`), reported
-as a z-score with a sigma class. The DESI `Omega_m` is quoted reference-only:
-an `Omega_m` pull would double-count the `H0` pull because the route, Planck,
-and DESI all share the same physical matter density. The module also echoes
-the engine's energy budget (never recomputing `Omega_m` by a new convention),
-rechecks flat closure at `z = 0`, reports the exact dark-energy density
+as a z-score with a sigma class. It quotes the DESI `Omega_m` descriptively
+and evaluates only the `H0` pull. The module echoes the engine's energy
+budget and checks flat closure from the unrounded route matter and radiation
+fractions and the saved scalar fraction at `z = 0`. It reports the exact dark-energy density
 evolution `f_DE(z) = rho_phi(z)/rho_phi(0)` with distance-from-Lambda markers
 (LCDM is `f_DE = 1`), reports thawing-strength route properties (`1 + w(0)`,
 the thaw redshift, and `-dw/da` at `a = 1` -- a derivative of the exact route,
@@ -265,7 +266,7 @@ not a fit), and cross-checks that the contract's `h0_bands` still equal the
 Current approved build:
 
 ```text
-scripts/tfa_density_validator/v0.1.0-build.0001/
+scripts/tfa_density_validator/v0.1.1-build.0001/
 ```
 
 Public entry point:

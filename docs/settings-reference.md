@@ -428,5 +428,5 @@ Current values:
 
 ```text
 settings_file_version = 1.2.0
-tfa_package_release = 0.0.5
+tfa_package_release = 0.0.6
 ```

@@ -25,11 +25,9 @@ The CPL fidelity audit is a separate specialist (`tfa_cpl_fidelity_validator`).
    settings `h0_bands` still equal the `desi_reference` mean +/- 1/2/3 sigma,
    so the pull class can never silently contradict the engine's band verdict.
 2. **Energy budget (descriptive, no pulls):** echoes the engine's
-   `energy_fractions` block (never recomputes Omega_m by a new convention — no
-   third Omega_m number), rechecks flat closure at z = 0 from `trajectory.csv`,
-   and quotes DESI's Omega_m **reference-only**. There is deliberately **no
-   Omega_m pull**: the route, Planck, and DESI all share omega_m ~ 0.142-0.143,
-   so it would double-count the H0 pull.
+   `energy_fractions` block and checks flat closure at z = 0 from the
+   unrounded route matter and radiation fractions and the scalar fraction
+   saved in `trajectory.csv`. DESI's Omega_m is quoted descriptively.
 3. **f_DE(z) = rho_phi(z)/rho_phi(0)** = `Omega_phi(z) E_X(z)^2 / Omega_phi(0)`
    (exact). LCDM baseline is f_DE = 1. Reports f_DE at marker redshifts and the
    max |f_DE - 1| over 0 <= z <= `fde_z_max`.
@@ -56,4 +54,5 @@ older than file version 1.2.0). A missing `desi_reference` block records a skip.
 
 | Version | Build | Notes |
 |---|---|---|
+| 0.1.1 | 0001 | Checks closure with the unrounded densities of the scalar route. |
 | 0.1.0 | 0001 | Initial release (T004 deliverable 5b, CPL-free redesign). |

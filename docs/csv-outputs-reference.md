@@ -31,7 +31,7 @@ A gated or diagnostic-disabled run may contain only the non-gated products:
 | `w_of_z.csv` | `tfa_acoustic_validator` | Written only when the export gate accepts the route. | Readers and external analysis. |
 | `physics_guards.csv` | `tfa_physics_guard_validator` | Written after successful guard validation. | Readers. |
 | `bao_results_per_datum.csv` | `tfa_bao_validator` | Written when BAO is enabled and the normalized history exists. | Readers and plotting/audit workflows. |
-| `rsd_results_per_datum.csv` | `tfa_rsd_validator` | Written when RSD is enabled and the normalized history exists. | Readers and plotting/audit workflows. |
+| `rsd_results_per_datum.csv` | `tfa_rsd_validator` | Written when RSD is enabled, the route is accepted, and the growth inputs validate. | Readers and plotting/audit workflows. |
 | `density_results.csv` | `tfa_density_validator` | Written for every completed run (non-gated) when the module is enabled. | Readers and external analysis. |
 | `cpl_fidelity_results.csv` | `tfa_cpl_fidelity_validator` | Written for every completed run (non-gated) when the module is enabled. | Readers and external analysis. |
 
@@ -130,7 +130,7 @@ use the normalized-history file instead.
 
 Written by `tfa_acoustic_validator` when the export gate accepts the route.
 
-This is the main downstream history file. It contains:
+This is the gated history export. It contains:
 
 ```text
 H_X(z) = H0_X * E_X(z)
@@ -161,9 +161,10 @@ Used by:
 
 - `tfa_plot_exporter` for `H_of_z` and `delta_H`.
 - `tfa_bao_validator` for distance integrals.
-- `tfa_rsd_validator` for growth integration.
+- `tfa_rsd_validator` for a normalization check. The growth history comes from `trajectory.csv`.
 
-If this file is absent, BAO and RSD are skipped and the gated plots are skipped.
+A rejected route skips BAO, RSD and the gated plots. A missing export on
+an accepted route is an input error for RSD.
 
 ## `w_of_z.csv`
 
@@ -266,8 +267,8 @@ that summary.
 Written by `tfa_rsd_validator`.
 
 This file stores one row per redshift-space distortion datum. It is written
-only when RSD is enabled, the route passes the export gate, and
-`expansion_history_h0x_normalized.csv` exists.
+only when RSD is enabled, the route passes the export gate, and both
+`trajectory.csv` and `expansion_history_h0x_normalized.csv` pass the input checks.
 
 Columns:
 
@@ -296,10 +297,9 @@ behind that summary.
 Written by `tfa_density_validator`. Non-gated: written for every completed
 run, including `EXCLUDED` routes.
 
-One row per indicator. The only row carrying a pull is `H0_X_kms`; the rest
-are descriptive or echoed audit values, by design (an `Omega_m` pull would
-double-count the `H0` pull, since the route, Planck, and DESI share the same
-physical matter density).
+One row per indicator. The `H0_X_kms` row carries the Hubble pull. The matter
+fraction from DESI is descriptive. TFA evaluates the Hubble pull as a
+one-dimensional comparison.
 
 Columns:
 

@@ -5,12 +5,19 @@ This folder contains approved package copies of the
 
 | Version | Build | API | TFA release | Folder | Status |
 |---|---:|---:|---:|---|---|
+| `0.1.7` | `0001` | `0.1` | `0.0.6` | `v0.1.7-build.0001/` | candidate |
+| `0.1.6` | `0001` | `0.1` | `0.0.4` | `v0.1.6-build.0001/` | previous build |
 | `0.1.5` | `0001` | `0.1` | `0.0.4` | `v0.1.5-build.0001/` | approved |
 | `0.1.4` | `0001` | `0.1` | `0.0.2` | `v0.1.4-build.0001/` | superseded |
 | `0.1.3` | `0001` | `0.1` | `0.0.2` | `v0.1.3-build.0001/` | superseded |
 | `0.1.2` | `0001` | `0.1` | `0.0.2` | `v0.1.2-build.0001/` | superseded |
 | `0.1.1` | `0001` | `0.1` | `0.0.2` | `v0.1.1-build.0001/` | superseded |
 | `0.1.0` | `0001` | `0.1` | `0.0.2` | `v0.1.0-build.0001/` | superseded |
+
+`0.1.7` computes the route matter and radiation fractions from their
+reference coefficients divided by `raw_E0**2`. The physical density
+`omega_m_out` uses the unrounded route matter fraction and `H0_X`. The
+external acoustic prior remains available as `omega_m_input_OMH2`.
 
 `0.1.5` adds the **energy_fractions summary block**. A new helper
 `_compute_energy_fractions(z, Omega_phi, H0_X_kms, cosmology)` computes five

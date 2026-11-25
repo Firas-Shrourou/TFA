@@ -306,7 +306,7 @@ covariance matrix under `TFA-package/data/desi_bao_dr2/`. It computes
 
 The RSD validator uses the bundled 18-point f-sigma8 gold compilation under
 `TFA-package/data/fsigma8_gold/`. It integrates the linear growth equation
-against the same normalized `H_X(z)` history and reports `f*sigma8`,
+using the normalized `H_X(z)` in `trajectory.csv` and reports `f*sigma8`,
 `sigma8_X`, and residual summaries.
 
 ```json
@@ -405,7 +405,7 @@ Current file values:
 
 ```text
 settings_file_version = 1.2.0
-tfa_package_release = 0.0.5
+tfa_package_release = 0.0.6
 ```
 
 The `schema.compatible_scripts` block is intentionally compact. It records the

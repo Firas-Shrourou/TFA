@@ -69,9 +69,12 @@ The BAO validator computes distance quantities from the route's own normalized
 history and drag-epoch sound horizon, then compares the resulting ratios with
 the bundled DESI DR2 BAO data vector.
 
-The RSD validator evolves the linear growth factor inside the same `H_X(z)`,
-computes `f_sigma8(z)`, and evaluates residuals against an 18-point
-redshift-space distortion compilation.
+The RSD validator takes the normalized `H_X(z)` samples in `trajectory.csv`
+as the background for the linear growth equation. It computes `f_sigma8(z)`
+and evaluates residuals against an 18-point redshift-space distortion
+compilation for routes accepted by the acoustic export gate. The RSD diagnostic
+compares growth across normalized expansion histories at a fixed reference
+physical matter density.
 
 The density validator is strictly CPL-free and non-gated: it scores the
 route's `H0_X` against the DESI DR2 w0waCDM reference (the band verdict as a
@@ -273,29 +276,21 @@ See `docs/summary-combiner.md` for the full utility reference.
 
 ## Verification snapshot
 
-The current stack has been verified against all eight bundled benchmark
-routes. All runs returned `code=OK` through the full seven-module chain, and
-all physics guards passed. `H0_X` is the required normalization; the band is
-the classification against the DESI DR2 w0waCDM evaluation bands
-(`66.74 +/- 0.56`, mean +/- 1/2/3 sigma); the `H0` pull is the same verdict
-as a continuous z-score. BAO/RSD values for the four routes outside the bands
-(marked `*`) come from gate-disabled runs of the same contracts; their
-degraded BAO fit shows that the acoustic verdict carries real downstream
-weight. The table was produced with `tfa_combined_csv_results`.
+The seven-stage pipeline completed for each of the eight bundled routes under
+its supplied settings. All physics guards passed. `H0_X` is the acoustic
+normalization. The band and `H0` pull use the configured DESI DR2 w0waCDM
+reference (66.74 ± 0.56 km/s/Mpc). The four excluded routes skip BAO and RSD.
 
 | Benchmark | H0_X (km/s/Mpc) | DESI band | H0 pull | BAO chi2/dof | RSD chi2/dof | sigma8_X |
 |---|---:|---|---:|---:|---:|---:|
-| `WQI_F765` | 66.210 | STRICT | -0.95 | 3.69 | 1.12 | 0.726 |
-| `WQI_F680` | 65.921 | LOOSE_2S | -1.46 | 4.11 | 1.13 | 0.724 |
-| `WLI_1` | 65.151 | LOOSE_3S | -2.84 | 5.49 | 1.15 | 0.720 |
-| `WLI_2` | 62.916 | EXCLUDED | -6.83 | 11.12* | 1.24* | 0.709* |
-| `WLI_3` | 60.390 | EXCLUDED | -11.34 | 21.20* | 1.38* | 0.697* |
-| `WLI_4` | 65.289 | LOOSE_3S | -2.59 | 5.23 | 1.15 | 0.721 |
-| `WLI_5` | 63.167 | EXCLUDED | -6.38 | 10.33* | 1.23* | 0.710* |
-| `WLI_6` | 60.741 | EXCLUDED | -10.71 | 19.48* | 1.36* | 0.698* |
-
-These values are demonstration outputs, not a claim that TFA is a full
-parameter-inference framework or a replacement for Boltzmann solvers.
+| `WLI_1` | 65.151 | LOOSE_3S | -2.84 | 5.49 | 1.083 | 0.7986 |
+| `WLI_2` | 62.916 | EXCLUDED | -6.83 | skipped | skipped | — |
+| `WLI_3` | 60.390 | EXCLUDED | -11.34 | skipped | skipped | — |
+| `WLI_4` | 65.289 | LOOSE_3S | -2.59 | 5.23 | 1.086 | 0.7994 |
+| `WLI_5` | 63.167 | EXCLUDED | -6.38 | skipped | skipped | — |
+| `WLI_6` | 60.741 | EXCLUDED | -10.71 | skipped | skipped | — |
+| `WQI_F680` | 65.921 | LOOSE_2S | -1.46 | 4.11 | 1.100 | 0.8029 |
+| `WQI_F765` | 66.210 | STRICT | -0.95 | 3.69 | 1.109 | 0.8046 |
 
 ## Engine validation
 
@@ -332,30 +327,22 @@ TFA tracks project releases, script versions, script builds, settings schema,
 and settings-file versions independently. A project release is a snapshot of
 the approved script builds and package files that belong together.
 
-Current approved script stack (TFA project release 0.0.5):
+Current script stack for the TFA 0.0.6 release candidate:
 
 | Script | Version | Build | Role |
 |---|---:|---:|---|
-| `tfa_common` | `0.9.3` | `0001` | Pipeline orchestration (7-specialist chain) |
+| `tfa_common` | `0.9.3` | `0003` | Pipeline orchestration (7-specialist chain) |
 | `tfa_core` | `0.1.0` | `0001` | Shared scalar ODE, settings, FLRW, I/O, encoding core |
-| `tfa_acoustic_validator` | `0.1.6` | `0001` | ODE integration, required normalization, CSV exports |
+| `tfa_acoustic_validator` | `0.1.7` | `0001` | ODE integration, required normalization, CSV exports |
 | `tfa_physics_guard_validator` | `0.1.5` | `0001` | Canonical thawing guard checks |
 | `tfa_plot_exporter` | `0.1.1` | `0001` | Diagnostic plot generation |
 | `tfa_bao_validator` | `0.1.1` | `0001` | DESI DR2 BAO diagnostics |
-| `tfa_rsd_validator` | `0.1.0` | `0001` | RSD growth diagnostics |
-| `tfa_density_validator` | `0.1.0` | `0001` | CPL-free density-sector diagnostics (non-gated) |
+| `tfa_rsd_validator` | `0.1.1` | `0001` | RSD growth diagnostics |
+| `tfa_density_validator` | `0.1.1` | `0001` | CPL-free density-sector diagnostics (non-gated) |
 | `tfa_cpl_fidelity_validator` | `0.1.0` | `0001` | CPL audit: error report and phantom audit (non-gated) |
 | `tfa_combined_csv_results` | `0.1.0` | `0001` | Summary aggregation utility |
 
 See `RELEASE-NOTES.md` for the full release history.
-
-## Archive
-
-Zenodo DOI for all versions:
-
-```text
-10.5281/zenodo.20572379
-```
 
 ## License
 
